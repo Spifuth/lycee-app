@@ -8,10 +8,10 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..auth import verify_password
-from .. import avatars as avatars_mod, discord, quiz, topics
+from .. import avatars as avatars_mod, discord, quiz, state, topics
 from ..config import settings
 from ..db import get_db
-from ..models import AppState, LiveAnswer, LiveParticipant, LiveSession, Question, User, Vote
+from ..models import LiveAnswer, LiveParticipant, LiveSession, Question, User, Vote
 
 from fastapi import Form
 
@@ -234,21 +234,12 @@ def admin_home(
     questions = db.execute(
         select(Question).order_by(Question.ts.desc()).limit(50)
     ).scalars().all()
-    state = db.execute(select(AppState).where(AppState.key == "vote_open")).scalar_one_or_none()
-    vote_open = bool(state.value.get("open", False)) if state and isinstance(state.value, dict) else False
-
-    ai_state = db.execute(select(AppState).where(AppState.key == "ai_open")).scalar_one_or_none()
-    ai_open = bool(ai_state.value.get("open", False)) if ai_state and isinstance(ai_state.value, dict) else False
-
-    persona_state = db.execute(select(AppState).where(AppState.key == "discord_persona")).scalar_one_or_none()
-    persona_username = discord.DEFAULT_PERSONA["username"]
-    persona_avatar = discord.DEFAULT_PERSONA["avatar_url"]
-    if persona_state and isinstance(persona_state.value, dict):
-        persona_username = persona_state.value.get("username") or persona_username
-        persona_avatar = persona_state.value.get("avatar_url") or persona_avatar
-
-    thread_state = db.execute(select(AppState).where(AppState.key == "discord_thread_mode")).scalar_one_or_none()
-    thread_mode = bool(thread_state.value.get("enabled", False)) if thread_state and isinstance(thread_state.value, dict) else False
+    vote_open = state.is_vote_open(db)
+    ai_open = state.is_ai_open(db)
+    persona = state.get_persona(db)
+    persona_username = persona["username"]
+    persona_avatar = persona["avatar_url"]
+    thread_mode = state.is_thread_mode(db)
 
     ranking_rows = db.execute(
         select(Vote.topic_id, func.count(Vote.id).label("c"))
@@ -351,7 +342,7 @@ def admin_home(
         <div>
           <h2 class="section-title">🤖 Module IA · proxy Ollama</h2>
           <p class="meta mt-1">
-            {'Les lycéens peuvent essayer l\'IA en live.' if ai_open else 'Les lycéens voient une animation pédago à la place.'}
+            {'Les lycéens peuvent essayer l’IA en live.' if ai_open else 'Les lycéens voient une animation pédago à la place.'}
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -447,7 +438,7 @@ def admin_vote_toggle(
     _: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    _toggle_state(db, "vote_open")
+    state.toggle(db, "vote_open")
     response.headers["Location"] = "/admin/"
     response.status_code = 303
     return None
@@ -459,7 +450,7 @@ def admin_ai_toggle(
     _: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    _toggle_state(db, "ai_open")
+    state.toggle(db, "ai_open")
     response.headers["Location"] = "/admin/"
     response.status_code = 303
     return None
@@ -477,13 +468,7 @@ def admin_discord_persona(
     avatar_url = avatar_url.strip()
     if not username:
         raise HTTPException(400, "Nom du bot vide.")
-    state = db.execute(select(AppState).where(AppState.key == "discord_persona")).scalar_one_or_none()
-    payload = {"username": username, "avatar_url": avatar_url or discord.DEFAULT_PERSONA["avatar_url"]}
-    if state is None:
-        db.add(AppState(key="discord_persona", value=payload))
-    else:
-        state.value = payload
-    db.commit()
+    state.set_persona(db, username=username, avatar_url=avatar_url)
     response.headers["Location"] = "/admin/"
     response.status_code = 303
     return None
@@ -495,13 +480,7 @@ def admin_thread_mode_toggle(
     _: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    state = db.execute(select(AppState).where(AppState.key == "discord_thread_mode")).scalar_one_or_none()
-    if state is None:
-        db.add(AppState(key="discord_thread_mode", value={"enabled": True}))
-    else:
-        current = bool(state.value.get("enabled", False)) if isinstance(state.value, dict) else False
-        state.value = {"enabled": not current, "toggled_at": datetime.now(timezone.utc).isoformat()}
-    db.commit()
+    state.toggle(db, "discord_thread_mode")
     response.headers["Location"] = "/admin/"
     response.status_code = 303
     return None
@@ -513,23 +492,10 @@ def admin_discord_persona_reset(
     _: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    state = db.execute(select(AppState).where(AppState.key == "discord_persona")).scalar_one_or_none()
-    if state is not None:
-        db.delete(state)
-        db.commit()
+    state.reset_persona(db)
     response.headers["Location"] = "/admin/"
     response.status_code = 303
     return None
-
-
-def _toggle_state(db: Session, key: str) -> None:
-    state = db.execute(select(AppState).where(AppState.key == key)).scalar_one_or_none()
-    if state is None:
-        db.add(AppState(key=key, value={"open": True}))
-    else:
-        current = bool(state.value.get("open", False)) if isinstance(state.value, dict) else False
-        state.value = {"open": not current, "toggled_at": datetime.now(timezone.utc).isoformat()}
-    db.commit()
 
 
 @router.post("/users/{pseudo}/ban")
@@ -1221,6 +1187,4 @@ class VoteStateOut(BaseModel):
 
 @router.get("/state", response_model=VoteStateOut)
 def admin_state(_: str = Depends(require_admin), db: Session = Depends(get_db)):
-    state = db.execute(select(AppState).where(AppState.key == "vote_open")).scalar_one_or_none()
-    vote_open = bool(state.value.get("open", False)) if state and isinstance(state.value, dict) else False
-    return VoteStateOut(open=vote_open)
+    return VoteStateOut(open=state.is_vote_open(db))

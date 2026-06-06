@@ -5,10 +5,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from .. import auth, badges, topics
+from .. import auth, badges, state, topics
 from ..db import get_db
 from ..limiter import limiter
-from ..models import AppState, Event, User, Vote
+from ..models import Event, User, Vote
 
 router = APIRouter(prefix="/api/vote", tags=["vote"])
 
@@ -31,13 +31,6 @@ class VoteIn(BaseModel):
     topic_ids: list[str] = Field(min_length=1, max_length=topics.MAX_VOTES_PER_USER)
 
 
-def _is_vote_open(db: Session) -> bool:
-    state = db.execute(select(AppState).where(AppState.key == "vote_open")).scalar_one_or_none()
-    if state is None or not isinstance(state.value, dict):
-        return False
-    return bool(state.value.get("open", False))
-
-
 def _totals(db: Session) -> dict[str, int]:
     rows = db.execute(select(Vote.topic_id, func.count(Vote.id)).group_by(Vote.topic_id)).all()
     return {topic_id: count for topic_id, count in rows}
@@ -54,7 +47,7 @@ def get_topics():
 
 @router.get("/state", response_model=StateOut)
 def get_state(request: Request, db: Session = Depends(get_db)):
-    open_ = _is_vote_open(db)
+    open_ = state.is_vote_open(db)
     totals = _totals(db)
     total_voters = _total_voters(db)
 
@@ -86,7 +79,7 @@ def post_vote(
     user: User = Depends(auth.get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not _is_vote_open(db):
+    if not state.is_vote_open(db):
         raise HTTPException(409, "Le vote est fermé.")
 
     # validate topic ids
@@ -125,7 +118,7 @@ def delete_vote(
     db.execute(delete(Vote).where(Vote.pseudo == user.pseudo))
     db.commit()
     return StateOut(
-        open=_is_vote_open(db),
+        open=state.is_vote_open(db),
         totals=_totals(db),
         my_votes=[],
         total_voters=_total_voters(db),

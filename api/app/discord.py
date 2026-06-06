@@ -14,42 +14,14 @@ from datetime import datetime, timezone
 from typing import Any
 
 import httpx
-from sqlalchemy import select
 
+from . import state
 from .config import settings
 from .db import SessionLocal
-from .models import AppState, Question
+from .models import Question
+from .state import DEFAULT_PERSONA
 
 log = logging.getLogger(__name__)
-
-DEFAULT_PERSONA = {
-    "username": "lycee-app · questions",
-    "avatar_url": "https://lycee.nebulahost.tech/favicon.svg",
-}
-
-
-def _is_thread_mode(db_session=None) -> bool:
-    """Lit le flag thread_mode depuis AppState. False = post dans le channel principal.
-    True = crée un thread par question (hors-intervention, discussion async possible).
-    """
-    from .models import AppState
-    from sqlalchemy import select
-    if db_session is None:
-        with SessionLocal() as db:
-            return _read_thread_mode(db)
-    return _read_thread_mode(db_session)
-
-
-def _read_thread_mode(db) -> bool:
-    from .models import AppState
-    from sqlalchemy import select
-    try:
-        state = db.execute(select(AppState).where(AppState.key == "discord_thread_mode")).scalar_one_or_none()
-        if state is None or not isinstance(state.value, dict):
-            return False
-        return bool(state.value.get("enabled", False))
-    except Exception:
-        return False
 
 THEME_COLORS: dict[str, int] = {
     "cyber":       0xef4444,
@@ -90,23 +62,9 @@ def _build_embed(*, pseudo: str, theme: str, content: str, question_id: int, ans
     return embed
 
 
-def _load_persona() -> dict[str, str]:
-    """Lit le persona Discord depuis AppState. Fallback aux valeurs par défaut."""
-    try:
-        with SessionLocal() as db:
-            state = db.execute(select(AppState).where(AppState.key == "discord_persona")).scalar_one_or_none()
-            if state is None or not isinstance(state.value, dict):
-                return DEFAULT_PERSONA
-            return {
-                "username": (state.value.get("username") or DEFAULT_PERSONA["username"])[:80],
-                "avatar_url": state.value.get("avatar_url") or DEFAULT_PERSONA["avatar_url"],
-            }
-    except Exception:
-        return DEFAULT_PERSONA
-
-
-def _payload_username() -> dict[str, str]:
-    return _load_persona()
+def _persona() -> dict[str, str]:
+    with SessionLocal() as db:
+        return state.get_persona(db)
 
 
 async def send_question_embed(*, question_id: int, pseudo: str, theme: str, content: str, public_base_url: str | None = None) -> None:
@@ -119,7 +77,7 @@ async def send_question_embed(*, question_id: int, pseudo: str, theme: str, cont
         return
 
     payload = {
-        **_payload_username(),
+        **_persona(),
         "embeds": [_build_embed(
             pseudo=pseudo, theme=theme, content=content,
             question_id=question_id, answered=False,
@@ -127,7 +85,8 @@ async def send_question_embed(*, question_id: int, pseudo: str, theme: str, cont
         )],
     }
 
-    thread_mode = _is_thread_mode()
+    with SessionLocal() as db:
+        thread_mode = state.is_thread_mode(db)
 
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:

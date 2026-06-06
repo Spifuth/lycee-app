@@ -19,14 +19,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import auth
+from .. import auth, state
 from ..config import settings
 from ..db import get_db
 from ..limiter import limiter
-from ..models import AppState, User
+from ..models import User
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 log = logging.getLogger(__name__)
@@ -56,13 +55,6 @@ class InfoOut(BaseModel):
     enabled: bool     # toggle admin — verrouillé tant que l'intervenant n'a pas ouvert
 
 
-def _is_ai_open(db: Session) -> bool:
-    state = db.execute(select(AppState).where(AppState.key == "ai_open")).scalar_one_or_none()
-    if state is None or not isinstance(state.value, dict):
-        return False
-    return bool(state.value.get("open", False))
-
-
 @router.get("/info", response_model=InfoOut)
 def info(db: Session = Depends(get_db)):
     """Métadonnées du module IA — utilisées par l'UI pour afficher le modèle + l'état."""
@@ -73,7 +65,7 @@ def info(db: Session = Depends(get_db)):
         rate_limit_per_min=settings.ollama_rate_limit_per_min,
         prompt_max_len=PROMPT_MAX_LEN,
         available=bool(settings.ollama_url),
-        enabled=_is_ai_open(db),
+        enabled=state.is_ai_open(db),
     )
 
 
@@ -139,7 +131,7 @@ async def chat(
 ):
     if not settings.ollama_url:
         raise HTTPException(503, "Le module IA est désactivé (LYCEE_OLLAMA_URL non configuré).")
-    if not _is_ai_open(db):
+    if not state.is_ai_open(db):
         raise HTTPException(423, "Le module IA est verrouillé par l'intervenant.")
 
     user_prompt = payload.prompt.strip()

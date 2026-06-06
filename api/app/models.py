@@ -1,7 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .time import UTCDateTime
 
 from .db import Base
 
@@ -13,8 +15,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_seed: Mapped[str] = mapped_column(String(32), nullable=False)
     bio: Mapped[str] = mapped_column(String(200), default="", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    last_seen: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now(), nullable=False)
+    last_seen: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now(), nullable=False)
     banned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     custom_avatar_filename: Mapped[str | None] = mapped_column(String(80), nullable=True)
     custom_avatar_status: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
@@ -31,7 +33,7 @@ class Event(Base):
     pseudo: Mapped[str] = mapped_column(String(20), ForeignKey("users.pseudo", ondelete="CASCADE"), index=True)
     type: Mapped[str] = mapped_column(String(50), index=True)
     payload: Mapped[dict] = mapped_column(JSON, default=dict)
-    ts: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+    ts: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now(), index=True)
 
     user: Mapped[User] = relationship(back_populates="events")
 
@@ -43,7 +45,7 @@ class Question(Base):
     pseudo: Mapped[str] = mapped_column(String(20), ForeignKey("users.pseudo", ondelete="CASCADE"), index=True)
     theme: Mapped[str] = mapped_column(String(50))
     content: Mapped[str] = mapped_column(String(500))
-    ts: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    ts: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
     answered: Mapped[bool] = mapped_column(Boolean, default=False)
     discord_message_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     discord_thread_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
@@ -66,7 +68,7 @@ class BadgeUnlock(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     pseudo: Mapped[str] = mapped_column(String(20), ForeignKey("users.pseudo", ondelete="CASCADE"), index=True)
     badge_id: Mapped[str] = mapped_column(String(50), index=True)
-    unlocked_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    unlocked_at: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
 
 
 class Vote(Base):
@@ -75,7 +77,7 @@ class Vote(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     pseudo: Mapped[str] = mapped_column(String(20), ForeignKey("users.pseudo", ondelete="CASCADE"), index=True)
     topic_id: Mapped[str] = mapped_column(String(50), index=True)
-    ts: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    ts: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
 
 
 class QuestionReaction(Base):
@@ -88,7 +90,7 @@ class QuestionReaction(Base):
     question_id: Mapped[int] = mapped_column(Integer, ForeignKey("questions.id", ondelete="CASCADE"), index=True)
     pseudo: Mapped[str] = mapped_column(String(20), ForeignKey("users.pseudo", ondelete="CASCADE"), index=True)
     emoji: Mapped[str] = mapped_column(String(16), index=True)
-    ts: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    ts: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
 
 
 class LiveSession(Base):
@@ -99,10 +101,10 @@ class LiveSession(Base):
     state: Mapped[str] = mapped_column(String(20), default="lobby", index=True)
     # lobby | question | between | finished | aborted
     current_q_idx: Mapped[int] = mapped_column(Integer, default=-1)
-    question_started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    question_started_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     question_duration_s: Mapped[int] = mapped_column(Integer, default=30)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
     # Shuffled order : list of {q_id, perm, answer} — perm[i]=original_choice_idx
     # at new position i, answer=new index of correct choice after shuffle.
     question_order: Mapped[list | None] = mapped_column(JSON, nullable=True)
@@ -119,7 +121,7 @@ class LiveParticipant(Base):
     pseudo: Mapped[str] = mapped_column(String(20), ForeignKey("users.pseudo", ondelete="CASCADE"), index=True)
     avatar_seed: Mapped[str] = mapped_column(String(32), default="")
     score: Mapped[int] = mapped_column(Integer, default=0)
-    joined_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    joined_at: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
 
 
 class LiveAnswer(Base):
@@ -135,5 +137,5 @@ class LiveAnswer(Base):
     choice: Mapped[int] = mapped_column(Integer)
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False)
     score: Mapped[int] = mapped_column(Integer, default=0)
-    ts: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    ts: Mapped[datetime] = mapped_column(UTCDateTime, server_default=func.now())
     elapsed_ms: Mapped[int] = mapped_column(Integer, default=0)

@@ -7,6 +7,8 @@ which is a pure function over the snapshot — zero DB queries per client.
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -113,3 +115,53 @@ def merge_viewer(snapshot: LiveSnapshot, viewer_pseudo: str | None) -> dict[str,
             out["my_was_correct"] = my_ans["is_correct"] if my_ans else False
             out["my_q_score"] = my_ans["score"] if my_ans else 0
     return out
+
+
+log = logging.getLogger(__name__)
+
+
+class LiveBroadcaster:
+    def __init__(self, queue_maxsize: int = 1):
+        self._queues: set[asyncio.Queue] = set()
+        self._queue_maxsize = queue_maxsize
+        self._poller: asyncio.Task | None = None
+
+    @property
+    def subscriber_count(self) -> int:
+        return len(self._queues)
+
+    def subscribe(self) -> asyncio.Queue:
+        q: asyncio.Queue = asyncio.Queue(maxsize=self._queue_maxsize)
+        self._queues.add(q)
+        return q
+
+    def unsubscribe(self, q: asyncio.Queue) -> None:
+        self._queues.discard(q)
+
+    def publish(self, snapshot: LiveSnapshot) -> None:
+        """Deliver the latest snapshot to every subscriber. If a queue is full
+        (slow consumer), drop the stale snapshot and keep only the newest."""
+        for q in list(self._queues):
+            if q.full():
+                try:
+                    q.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
+            try:
+                q.put_nowait(snapshot)
+            except asyncio.QueueFull:
+                pass
+
+    def ensure_poller(self, poll_coro_factory) -> None:
+        """Start the single poller loop if not already running. `poll_coro_factory`
+        is a zero-arg callable returning the coroutine to run."""
+        if self._poller is None or self._poller.done():
+            self._poller = asyncio.create_task(poll_coro_factory())
+
+    def maybe_stop_poller(self) -> None:
+        if not self._queues and self._poller is not None and not self._poller.done():
+            self._poller.cancel()
+            self._poller = None
+
+
+broadcaster = LiveBroadcaster()

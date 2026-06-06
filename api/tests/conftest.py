@@ -17,7 +17,8 @@ def engine():
     # Import models so every table is registered before create_all.
     from app import models  # noqa: F401
     Base.metadata.create_all(eng)
-    return eng
+    yield eng
+    eng.dispose()
 
 
 @pytest.fixture
@@ -27,4 +28,5 @@ def db(engine):
     try:
         yield session
     finally:
+        session.rollback()
         session.close()

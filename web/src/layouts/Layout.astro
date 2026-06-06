@@ -1,0 +1,65 @@
+---
+import Nav from "../components/Nav.astro";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "Découvre l'informatique — STI2D SIN", description = "Site d'intervention lycée." } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body class="terminal-frame min-h-screen text-ink-100">
+    <Nav />
+    <main class="mx-auto max-w-5xl px-4 py-8">
+      <slot />
+    </main>
+    <script>
+      // Easter egg: Konami code (↑↑↓↓←→←→BA) → unlock badge
+      const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+      let buf: string[] = [];
+      window.addEventListener('keydown', (e) => {
+        buf.push(e.key.length === 1 ? e.key.toLowerCase() : e.key);
+        if (buf.length > KONAMI.length) buf.shift();
+        if (buf.length === KONAMI.length && buf.every((k, i) => k === KONAMI[i])) {
+          fetch('/api/easter-egg/konami', { method: 'POST', credentials: 'include' })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.badges_granted?.length) {
+                // Petit feedback visuel
+                const el = document.createElement('div');
+                el.textContent = '🕹️ Old school gamer — badge débloqué !';
+                el.style.cssText = 'position:fixed;top:1rem;left:50%;transform:translateX(-50%);background:#fbbf24;color:#0a0a0b;padding:0.75rem 1.5rem;border-radius:8px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.5);animation:fadeOut 5s forwards';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 5000);
+              }
+            }).catch(() => undefined);
+          buf = [];
+        }
+      });
+    </script>
+    <style>
+      @keyframes fadeOut { 0% { opacity: 0; transform: translate(-50%, -20px); } 10%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -20px); } }
+    </style>
+    <footer class="mx-auto max-w-5xl px-4 py-10 text-sm text-ink-500 flex flex-wrap items-center justify-between gap-3">
+      <p>
+        Site auto-hébergé · zéro tracking · code source ouvert si tu demandes.
+      </p>
+      <nav class="flex items-center gap-3 font-mono text-xs">
+        <a href="/questions-live/" class="hover:text-accent-400">questions live</a>
+        <span class="text-ink-800">·</span>
+        <a href="/admin/" class="hover:text-accent-400" rel="noindex nofollow">🔒 admin</a>
+      </nav>
+    </footer>
+  </body>
+</html>

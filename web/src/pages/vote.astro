@@ -1,0 +1,13 @@
+---
+import Layout from "../layouts/Layout.astro";
+import VotePanel from "../components/VotePanel";
+---
+
+<Layout title="Vote">
+  <h1 class="mb-2 font-display text-3xl font-bold">Vote pour orienter la session</h1>
+  <p class="mb-8 text-ink-400">
+    Choisis tes <span class="text-accent-400">3 sujets préférés</span>. Les plus votés seront approfondis en live pendant l'intervention.
+  </p>
+
+  <VotePanel client:load />
+</Layout>

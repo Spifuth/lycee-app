@@ -1,0 +1,107 @@
+---
+const pathname = Astro.url.pathname;
+const link = (href: string, label: string) => ({ href, label, active: pathname === href });
+
+const links = [
+  link("/accueil", "Accueil"),
+  link("/vote", "Vote"),
+  link("/cyber", "Cyber"),
+  link("/ia", "IA"),
+  link("/metiers", "Métiers"),
+  link("/comment-ca-marche", "Comment ça marche"),
+  link("/parcours", "Parcours"),
+  link("/quiz", "Quiz"),
+  link("/live", "Live"),
+  link("/questions", "Questions"),
+  link("/pour-aller-plus-loin", "+"),
+];
+---
+
+<header class="sticky top-0 z-30 border-b border-ink-800/80 bg-ink-950/85 backdrop-blur">
+  <div class="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
+    <a href="/" class="font-mono text-sm text-accent-400 hover:text-accent-300">
+      $ découvre.<span class="text-ink-400">tech</span>
+    </a>
+    <nav class="hidden md:flex flex-1 items-center gap-1 text-sm">
+      {links.map(({ href, label, active }) => (
+        <a
+          href={href}
+          class={`rounded px-2 py-1 transition ${active ? "bg-ink-800 text-accent-400" : "text-ink-400 hover:text-ink-100"}`}
+        >
+          {label}
+        </a>
+      ))}
+    </nav>
+    <div class="ml-auto flex items-center gap-2">
+      <a
+        id="profile-btn"
+        href="/profil"
+        class="hidden items-center gap-2 rounded border border-ink-800 px-2 py-1 text-sm text-ink-300 hover:border-accent-500 hover:text-accent-400"
+      >
+        <span id="profile-avatar" class="inline-block h-6 w-6 rounded bg-ink-800"></span>
+        <span id="profile-pseudo">—</span>
+      </a>
+      <button
+        id="auth-btn"
+        class="rounded bg-accent-500 px-3 py-1.5 text-sm font-semibold text-ink-950 hover:bg-accent-400"
+      >
+        Connexion
+      </button>
+    </div>
+  </div>
+
+  <button
+    class="mx-auto block w-full max-w-5xl px-4 pb-2 text-left text-xs text-ink-500 md:hidden"
+    onclick="document.getElementById('mobile-nav')?.classList.toggle('hidden')"
+  >
+    ☰ menu
+  </button>
+  <nav id="mobile-nav" class="mx-auto hidden max-w-5xl px-4 pb-3 md:hidden">
+    <div class="flex flex-wrap gap-1 text-sm">
+      {links.map(({ href, label, active }) => (
+        <a
+          href={href}
+          class={`rounded px-2 py-1 ${active ? "bg-ink-800 text-accent-400" : "text-ink-300 hover:bg-ink-800"}`}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+  </nav>
+</header>
+
+<script>
+  import { api } from "../lib/api";
+
+  async function refreshAuthUI() {
+    try {
+      const me = await api.me();
+      const link = document.getElementById("profile-btn") as HTMLAnchorElement | null;
+      const pseudo = document.getElementById("profile-pseudo");
+      const avatar = document.getElementById("profile-avatar") as HTMLElement | null;
+      const btn = document.getElementById("auth-btn") as HTMLButtonElement | null;
+      if (link) link.style.display = "inline-flex";
+      if (pseudo) pseudo.textContent = me.pseudo;
+      if (avatar) {
+        avatar.style.backgroundImage = `url('${me.avatar_url}')`;
+        avatar.style.backgroundSize = "cover";
+      }
+      if (btn) {
+        btn.textContent = "Déconnexion";
+        btn.onclick = async () => {
+          await api.logout();
+          location.reload();
+        };
+      }
+    } catch {
+      const btn = document.getElementById("auth-btn") as HTMLButtonElement | null;
+      if (btn) {
+        btn.onclick = () => {
+          location.href = "/login";
+        };
+      }
+    }
+  }
+
+  refreshAuthUI();
+</script>

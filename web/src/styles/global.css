@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background-color: theme("colors.ink.950");
+  color: theme("colors.ink.100");
+  color-scheme: dark;
+  font-family: theme("fontFamily.display");
+}
+
+body {
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: theme("colors.accent.500");
+  color: theme("colors.ink.950");
+}
+
+.terminal-frame {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(56,189,248,0.06), transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(125,211,252,0.05), transparent 50%),
+    theme("colors.ink.950");
+}

@@ -1,0 +1,94 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import RequeteHttpAnim from "../../components/animations/RequeteHttpAnim";
+import ReverseProxyAnim from "../../components/animations/ReverseProxyAnim";
+import DockerContainerAnim from "../../components/animations/DockerContainerAnim";
+import TlsHandshakeAnim from "../../components/animations/TlsHandshakeAnim";
+import XssAttaqueAnim from "../../components/animations/XssAttaqueAnim";
+
+interface SlugProps {
+  titre: string;
+  extras?: string[];
+}
+
+const ANIMS: Record<string, SlugProps> = {
+  "requete-http": {
+    titre: "Le voyage d'une requête HTTP",
+    extras: [
+      "Ouvre les <strong>DevTools</strong> (F12), onglet <em>Réseau</em>, recharge la page → tu verras toutes les requêtes en vrai.",
+      "<span class='text-accent-400'>HTTP/2</span> permet à un navigateur de demander plusieurs ressources en parallèle sur la même connexion.",
+      "Le <strong>TLS</strong> (cadenas vert) chiffre la requête : personne entre toi et le serveur ne peut lire ce qui transite.",
+    ],
+  },
+  "reverse-proxy": {
+    titre: "Reverse proxy — un concierge pour 50 services",
+    extras: [
+      "Sur ce homelab, <strong>Traefik</strong> route ~50 services derrière une seule IP publique et un seul port 443.",
+      "Pour ajouter un service, on lui colle un <span class='text-accent-400'>label Docker</span> avec son hostname — Traefik picke ça tout seul.",
+      "Sans reverse proxy, il faudrait soit une IP publique par service, soit des ports bizarres genre :8443. Pas tenable.",
+    ],
+  },
+  "docker-container": {
+    titre: "Container vs VM",
+    extras: [
+      "Docker n'a pas inventé les containers — il a juste rendu les <strong>namespaces</strong> et <strong>cgroups</strong> du kernel Linux faciles à utiliser.",
+      "Une VM démarre un OS entier. Un container partage le noyau de l'hôte → c'est pour ça qu'on lance 50 containers sur une machine moyenne.",
+      "Tout ce homelab tourne en <span class='text-accent-400'>~80 containers</span> sur une seule machine dédiée. Impossible en VM.",
+    ],
+  },
+  "tls-handshake": {
+    titre: "TLS handshake — le cadenas vert",
+    extras: [
+      "Le certificat affiché par le cadenas est signé par une <strong>autorité de certification</strong> que ton OS connaît déjà.",
+      "<span class='text-accent-400'>Let's Encrypt</span> donne des certificats gratuits, valides 90 jours, renouvelés automatiquement (Traefik le fait sur ce site).",
+      "TLS 1.3 a simplifié le handshake : 1 aller-retour au lieu de 2. Plus rapide et plus sûr.",
+    ],
+  },
+  "xss-attaque": {
+    titre: "XSS — attaque & parade",
+    extras: [
+      "XSS = injection de code <strong>côté navigateur</strong> (≠ injection SQL qui touche la BDD).",
+      "Trois familles : <em>stockée</em> (en base, persistante), <em>reflétée</em> (dans une URL), <em>DOM-based</em> (entièrement côté front).",
+      "Parade moderne : <span class='text-accent-400'>Content Security Policy</span> + framework qui encode par défaut (React, Vue, etc. — toujours échapper, jamais innerHTML).",
+    ],
+  },
+};
+
+export function getStaticPaths() {
+  return Object.entries({
+    "requete-http": "Le voyage d'une requête HTTP",
+    "reverse-proxy": "Reverse proxy — un concierge pour 50 services",
+    "docker-container": "Container vs VM",
+    "tls-handshake": "TLS handshake — le cadenas vert",
+    "xss-attaque": "XSS — attaque & parade",
+  }).map(([slug, titre]) => ({ params: { slug }, props: { titre } }));
+}
+
+const { titre } = Astro.props;
+const { slug } = Astro.params as { slug: string };
+const meta = ANIMS[slug];
+---
+
+<Layout title={titre}>
+  <a href="/comment-ca-marche" class="font-mono text-sm text-ink-500 hover:text-accent-400">← retour</a>
+  <h1 class="mt-2 mb-2 font-display text-3xl font-bold">{titre}</h1>
+
+  <div class="mt-6">
+    {slug === "requete-http" && <RequeteHttpAnim client:visible />}
+    {slug === "reverse-proxy" && <ReverseProxyAnim client:visible />}
+    {slug === "docker-container" && <DockerContainerAnim client:visible />}
+    {slug === "tls-handshake" && <TlsHandshakeAnim client:visible />}
+    {slug === "xss-attaque" && <XssAttaqueAnim client:visible />}
+  </div>
+
+  {meta?.extras && (
+    <div class="mt-6 rounded-lg border border-ink-800 bg-ink-900/40 p-5 text-sm text-ink-300">
+      <p class="font-mono text-xs text-ink-500"># pour aller plus loin</p>
+      <ul class="mt-2 space-y-1">
+        {meta.extras.map((line) => (
+          <li set:html={`· ${line}`} />
+        ))}
+      </ul>
+    </div>
+  )}
+</Layout>

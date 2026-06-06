@@ -1,0 +1,140 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Cyber — c'est quoi vraiment">
+  <h1 class="mb-2 font-display text-3xl font-bold">La cyber — c'est quoi vraiment</h1>
+  <p class="mb-10 text-ink-400">
+    Spoiler : ce n'est pas un mec en hoodie qui tape sur trois écrans en parallèle.
+  </p>
+
+  <article class="space-y-12 leading-relaxed text-ink-200">
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">1 · Mythe vs réalité</h2>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="rounded-lg border border-terminal-rose/30 bg-terminal-rose/5 p-5">
+          <p class="font-mono text-xs text-terminal-rose mb-2">L'IMAGE DE LA SÉRIE</p>
+          <ul class="space-y-1 text-sm">
+            <li>· un type seul dans le noir, hoodie sur la tête</li>
+            <li>· 4 écrans, terminal qui défile en vert</li>
+            <li>· « j'suis dedans » en 12 secondes</li>
+            <li>· l'angle est toujours l'<em>attaque</em></li>
+          </ul>
+        </div>
+        <div class="rounded-lg border border-terminal-green/30 bg-terminal-green/5 p-5">
+          <p class="font-mono text-xs text-terminal-green mb-2">LA RÉALITÉ</p>
+          <ul class="space-y-1 text-sm">
+            <li>· une équipe, dans un open-space</li>
+            <li>· beaucoup de doc, beaucoup de Slack, beaucoup de café</li>
+            <li>· une investigation prend des jours, pas 12 secondes</li>
+            <li>· 80% du métier c'est la <em>défense</em>, pas l'attaque</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-4 text-sm text-ink-300">
+        La cyber ce n'est pas un sport individuel ni un cliché de hacker. C'est une discipline d'ingénierie + de communication + de veille permanente.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">2 · Les 3 grandes familles de métiers</h2>
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-5">
+          <p class="text-2xl">🛡️</p>
+          <p class="mt-2 font-display text-lg font-semibold">Blue team — défense</p>
+          <p class="mt-1 text-sm text-ink-300">
+            Surveiller, détecter, contenir, remédier.
+            Les analystes SOC, les ingés sécurité, les experts forensic.
+            Le quotidien : lire des logs, écrire des règles de détection, répondre aux incidents.
+          </p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-5">
+          <p class="text-2xl">⚔️</p>
+          <p class="mt-2 font-display text-lg font-semibold">Red team — attaque éthique</p>
+          <p class="mt-1 text-sm text-ink-300">
+            Pentesteurs, bug bounty hunters, chercheurs en vulnérabilités.
+            Ils cherchent les failles <em>avant</em> les vrais attaquants, sur autorisation explicite, et rendent un rapport.
+            C'est le métier qui ressemble le plus au cliché — mais en mode pro et légal.
+          </p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-5">
+          <p class="text-2xl">📋</p>
+          <p class="mt-2 font-display text-lg font-semibold">Gouvernance · GRC</p>
+          <p class="mt-1 text-sm text-ink-300">
+            RSSI, consultants conformité, juristes cyber.
+            Ils écrivent les politiques, gèrent les risques, négocient avec la direction et les régulateurs (RGPD, NIS2…).
+            Moins technique, plus stratégique. Salaires souvent très bons.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">3 · Une journée type d'analyste SOC</h2>
+      <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-5 font-mono text-sm text-ink-200 space-y-2">
+        <p><span class="text-ink-500">09:00</span> · café · stand-up de 15 min avec l'équipe de nuit qui passe le flambeau · 2 alertes en cours sur des connexions VPN suspectes.</p>
+        <p><span class="text-ink-500">09:30</span> · ouverture du SIEM (la console qui agrège tous les logs de la boîte) · je creuse l'alerte 1 : un compte AD qui essaie 30 logins depuis Manille.</p>
+        <p><span class="text-ink-500">10:15</span> · escalade : c'est un vrai phishing, le mdp a fuité · je bloque le compte, je reset, je préviens la victime, je rédige un ticket d'incident.</p>
+        <p><span class="text-ink-500">11:30</span> · veille techno · lecture de 3 advisories CVE · est-ce qu'on est impactés ? je vérifie les versions déployées chez nous.</p>
+        <p><span class="text-ink-500">14:00</span> · réunion : on revoit les règles de détection qui font du bruit (faux positifs trop fréquents) · on les retune ensemble.</p>
+        <p><span class="text-ink-500">16:00</span> · écriture d'une nouvelle règle Sigma pour détecter un comportement vu dans une newsletter.</p>
+        <p><span class="text-ink-500">17:45</span> · passation à l'équipe du soir · documentation des 2 tickets ouverts dans la journée.</p>
+      </div>
+      <p class="mt-3 text-sm text-ink-400">Spoiler : pas mal d'écrits, pas mal de lecture, beaucoup d'investigation. C'est un métier d'enquêteur·rice plus que de pirate.</p>
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">4 · Pourquoi c'est intéressant en 2026</h2>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">PÉNURIE DE PROFILS</p>
+          <p class="mt-1 text-sm">~15 000 postes non pourvus en France selon l'ANSSI. Ça veut dire embauche facile à bac+2 ou bac+5.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">SALAIRES SOLIDES</p>
+          <p class="mt-1 text-sm">Analyste SOC junior : ~35-45k€. Pentester senior : 55-80k€. RSSI : 80-150k€. Variable selon Paris/régions.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">DIVERSITÉ DES SUJETS</p>
+          <p class="mt-1 text-sm">Cyber-IA (faux-positifs, modèles attaqués), IoT (objets connectés), OT (industriel), cloud, mobile, post-quantique...</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">JAMAIS LA MÊME JOURNÉE</p>
+          <p class="mt-1 text-sm">Le métier évolue avec les attaquants. Tu n'arrêtes jamais d'apprendre. C'est ce qui plaît à la plupart des gens qui y restent.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">5 · « Mais c'est dur, non ? »</h2>
+      <div class="rounded-lg border border-accent-500/40 bg-accent-500/5 p-5">
+        <p class="text-sm">
+          Honnêtement : c'est <strong>technique mais progressif</strong>. Personne ne naît avec ces compétences.
+          Les gens qui réussissent ont juste un truc en commun : ils ont accepté de <em>ne pas tout comprendre</em>
+          tout de suite, et de creuser quand ils butent.
+        </p>
+        <p class="mt-3 text-sm">
+          Tu peux démarrer maintenant, gratuitement, sans rien installer :
+        </p>
+        <ul class="mt-2 space-y-1 text-sm text-ink-300">
+          <li>· <a class="text-accent-400 underline" href="https://tryhackme.com" target="_blank" rel="noreferrer">TryHackMe</a> — parcours guidés pour débuter</li>
+          <li>· <a class="text-accent-400 underline" href="https://www.root-me.org" target="_blank" rel="noreferrer">Root-Me</a> — challenges en français, progressifs</li>
+          <li>· <a class="text-accent-400 underline" href="https://www.france-cybersecurity-challenge.fr" target="_blank" rel="noreferrer">France Cybersecurity Challenge</a> — compétition annuelle (16-24 ans, gratuit, organisée par l'ANSSI)</li>
+        </ul>
+        <p class="mt-3 text-sm text-ink-400">
+          Vraiment : essaie 2-3 challenges débutants ce week-end. Si ça te gratte, c'est ton truc.
+        </p>
+      </div>
+    </section>
+  </article>
+
+  <div class="mt-12 flex flex-wrap gap-3">
+    <a href="/metiers" class="rounded bg-accent-500 px-5 py-2.5 font-semibold text-ink-950 shadow-glow hover:bg-accent-400">
+      Voir les fiches métiers →
+    </a>
+    <a href="/comment-ca-marche/xss-attaque" class="rounded border border-ink-700 px-5 py-2.5 text-ink-200 hover:border-accent-500 hover:text-accent-400">
+      Voir une attaque en anim
+    </a>
+  </div>
+</Layout>

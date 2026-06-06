@@ -1,0 +1,28 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const anims = [
+  { slug: "requete-http", titre: "Le voyage d'une requête HTTP", hook: "Quand tu tapes un URL, qu'est-ce qui se passe ?" },
+  { slug: "reverse-proxy", titre: "Reverse proxy — un concierge pour 50 services", hook: "Comment un serveur héberge 50 sites." },
+  { slug: "docker-container", titre: "Container vs VM", hook: "C'est quoi Docker dont parlent tous les devs ?" },
+  { slug: "tls-handshake", titre: "Le cadenas vert (TLS)", hook: "Pourquoi un cadenas, et ce qu'il garantit." },
+  { slug: "xss-attaque", titre: "XSS — attaque & parade", hook: "Comment on hack un site (et s'en protège)." },
+];
+---
+
+<Layout title="Comment ça marche">
+  <h1 class="mb-2 font-display text-3xl font-bold">Comment ça marche</h1>
+  <p class="mb-8 text-ink-400">Animations terminal — chaque concept en 1-2 minutes.</p>
+  <div class="grid gap-4 sm:grid-cols-2">
+    {anims.map((a) => (
+      <a
+        href={`/comment-ca-marche/${a.slug}`}
+        class="rounded-lg border border-ink-800 bg-ink-900/40 p-5 transition hover:border-accent-500"
+      >
+        <h2 class="font-display text-lg font-semibold">{a.titre}</h2>
+        <p class="mt-1 text-sm text-ink-300">{a.hook}</p>
+        <p class="mt-2 font-mono text-xs text-ink-500">/{a.slug}</p>
+      </a>
+    ))}
+  </div>
+</Layout>

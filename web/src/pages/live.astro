@@ -1,0 +1,14 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LivePlayer from "../components/LivePlayer";
+---
+
+<Layout title="Quiz live">
+  <h1 class="mb-2 font-display text-3xl font-bold">Quiz live</h1>
+  <p class="mb-8 text-ink-400">
+    Mode Kahoot : tout le monde voit la même question au même moment, plus tu réponds vite (et juste), plus tu marques.
+    L'intervenant pilote depuis l'écran principal.
+  </p>
+
+  <LivePlayer client:load />
+</Layout>

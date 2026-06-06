@@ -1,0 +1,160 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AiPanel from "../components/AiPanel";
+---
+
+<Layout title="IA — types, usages, limites">
+  <h1 class="mb-2 font-display text-3xl font-bold">L'IA — types, usages, limites</h1>
+  <p class="mb-10 text-ink-400">
+    Panorama honnête. Ni techno-béat, ni technophobe. + une démo en live d'une IA qui tourne <span class="text-accent-400">chez moi</span>, pas chez Google.
+  </p>
+
+  <article class="space-y-12 leading-relaxed text-ink-200">
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">1 · Les grandes familles d'IA</h2>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">LLM · IA GÉNÉRATIVE TEXTE</p>
+          <p class="mt-1 text-sm">ChatGPT, Claude, Gemini, Mistral. Génèrent du texte mot par mot à partir d'un prompt.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">GÉNÉRATION D'IMAGES</p>
+          <p class="mt-1 text-sm">Midjourney, Stable Diffusion, DALL-E, FLUX. Description → image. Modèles de diffusion.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">VIDÉO · 3D</p>
+          <p class="mt-1 text-sm">Sora (OpenAI), Veo (Google), Runway. Encore récent, encore cher. Mais qualité bluffante.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">VOIX · AUDIO</p>
+          <p class="mt-1 text-sm">Whisper (transcription), ElevenLabs (synthèse vocale et clonage de voix), Suno (musique).</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">VISION · CLASSIFICATION</p>
+          <p class="mt-1 text-sm">Reconnaissance faciale, voitures autonomes, diagnostic médical, modération de contenu.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">CODE AI</p>
+          <p class="mt-1 text-sm">GitHub Copilot, Claude Code, Cursor. Suggèrent du code, refactorent, expliquent. Outils devenus standard chez les devs.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">AGENTS</p>
+          <p class="mt-1 text-sm">L'IA qui exécute plusieurs étapes seule : navigateur, fichiers, API. Encore fragile, mais ça arrive vite.</p>
+        </div>
+        <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">ML « CLASSIQUE »</p>
+          <p class="mt-1 text-sm">Reco Netflix, anti-spam, détection de fraude bancaire. Tu en utilises des dizaines par jour sans le savoir.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">2 · Comment ça marche (vraiment simple)</h2>
+      <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-5 space-y-3 text-sm">
+        <p>
+          Un LLM (Large Language Model) est un système qui <strong>prédit le mot suivant</strong>.
+          Tu lui donnes un début de phrase, il calcule le mot le plus probable, puis le suivant, puis le suivant.
+          Encore et encore.
+        </p>
+        <p>
+          Comment il sait ? Pendant l'<strong>entraînement</strong>, il a lu une quantité énorme de textes (livres, articles, forums, code, etc.)
+          et a ajusté des milliards de paramètres internes pour devenir bon à ce jeu de prédiction.
+        </p>
+        <p>
+          Pendant l'<strong>inférence</strong> (quand tu lui parles), il ne réfléchit pas, il ne comprend pas au sens humain.
+          Il continue le texte en allant chercher le mot statistiquement le plus probable, à partir de tout ce qu'il a vu pendant son entraînement.
+        </p>
+        <p class="text-terminal-amber">
+          C'est pour ça qu'il peut <strong>halluciner</strong> : il prédit ce qui <em>sonne</em> vrai, pas ce qui <em>est</em> vrai.
+        </p>
+        <p class="font-mono text-xs text-ink-500">
+          → Tu peux voir cette prédiction mot-par-mot en live dans le panel plus bas (quand l'intervenant déverrouille l'IA).
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">3 · Bien l'utiliser (utile pour tes études)</h2>
+      <div class="space-y-3">
+        <div class="rounded border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">DONNE DU CONTEXTE</p>
+          <p class="mt-1 text-sm">« Tu es prof de SVT qui explique à un lycéen, en 5 phrases. Sujet : … » → beaucoup mieux que juste « explique la photosynthèse ».</p>
+        </div>
+        <div class="rounded border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">DEMANDE DES EXEMPLES</p>
+          <p class="mt-1 text-sm">« Donne-moi 3 exemples concrets avant la définition. » Ça force le modèle à raisonner et ça t'aide à mémoriser.</p>
+        </div>
+        <div class="rounded border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">FACT-CHECK SYSTÉMATIQUE</p>
+          <p class="mt-1 text-sm">Ne JAMAIS rendre un devoir sans vérifier les sources. Les LLM inventent des citations, des dates, des chiffres avec aplomb.</p>
+        </div>
+        <div class="rounded border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">ITÈRE</p>
+          <p class="mt-1 text-sm">La 1ʳᵉ réponse est rarement la meilleure. « Reformule plus simple », « plus court », « avec un exemple en plus ».</p>
+        </div>
+        <div class="rounded border border-ink-800 bg-ink-900/40 p-4">
+          <p class="font-mono text-xs text-accent-400">IMPOSE UN FORMAT</p>
+          <p class="mt-1 text-sm">« Réponds en markdown avec un H2 par section + une liste à puces. » Le résultat sera 10× plus lisible.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">4 · Limites & dangers — cash</h2>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded border border-terminal-rose/30 bg-terminal-rose/5 p-4">
+          <p class="font-mono text-xs text-terminal-rose">HALLUCINATIONS</p>
+          <p class="mt-1 text-sm">L'IA invente avec aplomb. Faux noms, fausses citations, fausses sources. Toujours vérifier.</p>
+        </div>
+        <div class="rounded border border-terminal-rose/30 bg-terminal-rose/5 p-4">
+          <p class="font-mono text-xs text-terminal-rose">BIAIS</p>
+          <p class="mt-1 text-sm">Le modèle reproduit (et parfois amplifie) les biais présents dans ses données d'entraînement.</p>
+        </div>
+        <div class="rounded border border-terminal-rose/30 bg-terminal-rose/5 p-4">
+          <p class="font-mono text-xs text-terminal-rose">DONNÉES PRIVÉES</p>
+          <p class="mt-1 text-sm">Ce que tu envoies à ChatGPT peut servir à entraîner les futures versions. Évite les infos perso, médicales, scolaires sensibles.</p>
+        </div>
+        <div class="rounded border border-terminal-rose/30 bg-terminal-rose/5 p-4">
+          <p class="font-mono text-xs text-terminal-rose">DEEPFAKES</p>
+          <p class="mt-1 text-sm">Vidéos / audio falsifiables. Conséquences sociales graves : harcèlement, manipulation politique, escroqueries.</p>
+        </div>
+        <div class="rounded border border-terminal-rose/30 bg-terminal-rose/5 p-4">
+          <p class="font-mono text-xs text-terminal-rose">TRICHE SCOLAIRE</p>
+          <p class="mt-1 text-sm">Les profs détectent (ou pas), mais surtout tu ne progresses pas <em>toi</em>. Utilise-la pour apprendre, pas pour copier.</p>
+        </div>
+        <div class="rounded border border-terminal-rose/30 bg-terminal-rose/5 p-4">
+          <p class="font-mono text-xs text-terminal-rose">DÉPENDANCE</p>
+          <p class="mt-1 text-sm">Savoir penser, écrire et chercher <em>sans</em> IA reste une compétence essentielle. Sinon ton cerveau atrophie.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-lg border border-accent-500/40 bg-accent-500/5 p-6">
+      <h2 class="mb-2 font-display text-2xl font-bold text-accent-400">5 · Local vs cloud — la démo</h2>
+      <p class="text-sm mb-4">
+        L'IA à laquelle tu vas parler en dessous ne tourne pas chez Google ni chez OpenAI.
+        Elle tourne sur le même serveur que ce site. Tes prompts ne servent à rien d'autre que te répondre.
+      </p>
+      <AiPanel client:load />
+    </section>
+
+    <section>
+      <h2 class="mb-3 font-display text-2xl font-bold text-accent-400">6 · L'IA et tes futurs métiers</h2>
+      <div class="rounded-lg border border-ink-800 bg-ink-900/40 p-5 space-y-3 text-sm">
+        <p>
+          Tous les métiers vont changer. Pas certains : <em>tous</em>. La question pertinente n'est pas « est-ce que mon job va disparaître » mais
+          <strong>« est-ce que je vais savoir m'en servir comme effet de levier »</strong>.
+        </p>
+        <p>
+          Le profil qui va kiffer en 2030 : celui qui sait poser un bon problème, qui sait lire critiquement une réponse, qui sait quand l'IA se trompe.
+          Pas celui qui sait copier-coller des prompts.
+        </p>
+        <p>
+          Ça s'apprend dès maintenant. Pas besoin d'attendre le bac. Joue avec, casse-la, observe ses limites.
+          C'est la meilleure veille tech possible.
+        </p>
+      </div>
+    </section>
+  </article>
+</Layout>

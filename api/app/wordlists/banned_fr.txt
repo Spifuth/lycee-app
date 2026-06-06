@@ -1,0 +1,18 @@
+# Liste minimale anti-pseudos/bio offensifs.
+# Le filtre fait un test "substring in lower(text)" — choisir des racines, pas des mots complets.
+# A enrichir avant l'intervention. Format : un mot/racine par ligne. # = commentaire.
+admin
+moderator
+modo
+fdp
+pute
+salope
+encule
+nazi
+hitler
+suicid
+porno
+ntm
+tg
+ftg
+pd

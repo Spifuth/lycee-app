@@ -1,0 +1,40 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LiveStats from "../components/LiveStats";
+
+const portes = [
+  { href: "/vote", label: "Vote", desc: "Choisis ce qu'on creuse ensemble." },
+  { href: "/cyber", label: "Cyber", desc: "C'est quoi vraiment (pas Mr Robot)." },
+  { href: "/ia", label: "IA", desc: "Types, usages, limites — + démo." },
+  { href: "/metiers", label: "Métiers", desc: "10 fiches retournables." },
+  { href: "/comment-ca-marche", label: "Comment ça marche", desc: "Animations terminal." },
+  { href: "/parcours", label: "Parcours", desc: "Après le bac, sans hiérarchie." },
+  { href: "/quiz", label: "Quiz", desc: "30 questions thématiques." },
+  { href: "/questions", label: "Questions", desc: "Pose la tienne, anonyme." },
+  { href: "/pour-aller-plus-loin", label: "Pour aller + loin", desc: "Ressources curées." },
+];
+---
+
+<Layout title="Accueil">
+  <h1 class="mb-2 font-display text-3xl font-bold">Où veux-tu aller ?</h1>
+  <p class="mb-6 text-ink-400">Clique sur une porte. Tu peux revenir à n'importe quel moment.</p>
+
+  <div class="mb-8">
+    <LiveStats client:visible />
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {portes.map((p) => (
+      <a
+        href={p.href}
+        class="group rounded-lg border border-ink-800 bg-ink-900/40 p-5 transition hover:border-accent-500 hover:bg-ink-900"
+      >
+        <div class="flex items-center justify-between">
+          <h2 class="font-display text-lg font-semibold group-hover:text-accent-400">{p.label}</h2>
+          <span class="font-mono text-ink-500 transition group-hover:text-accent-400">→</span>
+        </div>
+        <p class="mt-1 text-sm text-ink-400">{p.desc}</p>
+      </a>
+    ))}
+  </div>
+</Layout>

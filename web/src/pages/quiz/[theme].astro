@@ -1,0 +1,37 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import QuizPlayer from "../../components/QuizPlayer";
+
+const THEMES: Record<string, { label: string; emoji: string }> = {
+  vocab:    { label: "Vocabulaire de base",       emoji: "🔤" },
+  cyber:    { label: "Cyber",                     emoji: "🛡️" },
+  dev:      { label: "Code & dev",                emoji: "💻" },
+  reseau:   { label: "Réseau",                    emoji: "🌐" },
+  ia:       { label: "Intelligence artificielle", emoji: "🧠" },
+  culture:  { label: "Culture tech",              emoji: "🎓" },
+  crypto:   { label: "Crypto & blockchain",       emoji: "⛓️" },
+  oss:      { label: "Open source & licences",    emoji: "🐙" },
+  hardware: { label: "Hardware & low-level",      emoji: "🔩" },
+  iot:      { label: "IoT & objets connectés",    emoji: "🏠" },
+};
+
+export function getStaticPaths() {
+  return Object.keys({
+    vocab: 1, cyber: 1, dev: 1, reseau: 1, ia: 1,
+    culture: 1, crypto: 1, oss: 1, hardware: 1, iot: 1,
+  }).map((theme) => ({ params: { theme } }));
+}
+
+const { theme } = Astro.params as { theme: string };
+const meta = THEMES[theme] ?? { label: theme, emoji: "❓" };
+---
+
+<Layout title={`Quiz · ${meta.label}`}>
+  <a href="/quiz" class="font-mono text-sm text-ink-500 hover:text-accent-400">← retour aux thèmes</a>
+  <h1 class="mt-2 mb-2 font-display text-3xl font-bold">
+    {meta.emoji} {meta.label}
+  </h1>
+  <p class="mb-6 text-ink-400">5 questions à choix multiples. Tu vois ton score et les explications une fois soumis.</p>
+
+  <QuizPlayer client:load themeId={theme} />
+</Layout>

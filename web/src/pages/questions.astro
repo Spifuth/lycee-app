@@ -1,0 +1,14 @@
+---
+import Layout from "../layouts/Layout.astro";
+import QuestionForm from "../components/QuestionForm";
+---
+
+<Layout title="Pose ta question">
+  <h1 class="mb-2 font-display text-3xl font-bold">Pose ta question</h1>
+  <p class="mb-8 text-ink-400">
+    Anonyme pour les autres lycéens (juste le thème + la question s'affichent publiquement).
+    L'intervenant voit ton pseudo et peut te répondre en live.
+  </p>
+
+  <QuestionForm client:load />
+</Layout>

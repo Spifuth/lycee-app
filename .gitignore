@@ -1,0 +1,36 @@
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Python (api/) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Node / Astro (web/) ---
+node_modules/
+dist/
+.astro/
+.cache/
+
+# --- Données / base ---
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+*.db
+*.sqlite3
+
+# --- OS / éditeur ---
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

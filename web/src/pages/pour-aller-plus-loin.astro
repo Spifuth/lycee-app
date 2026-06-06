@@ -1,0 +1,139 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+interface Resource {
+  label: string;
+  url?: string;
+  desc?: string;
+}
+
+interface Section {
+  titre: string;
+  emoji: string;
+  intro?: string;
+  items: Resource[];
+}
+
+const SECTIONS: Section[] = [
+  {
+    titre: "Plateformes pour s'entraîner",
+    emoji: "🎯",
+    intro: "Tu peux y créer un compte gratuit et démarrer dans la prochaine heure.",
+    items: [
+      { label: "TryHackMe",                url: "https://tryhackme.com", desc: "Parcours guidés, parfait pour démarrer. Beaucoup de gratuit." },
+      { label: "Hack The Box",             url: "https://hackthebox.com", desc: "Plus exigeant. Excellente pour progresser vers le pentest." },
+      { label: "Root-Me",                  url: "https://www.root-me.org", desc: "Communauté française. Challenges variés, beaucoup en FR." },
+      { label: "France Cybersecurity Challenge", url: "https://www.france-cybersecurity-challenge.fr", desc: "Compétition annuelle ANSSI, gratuite, 14-25 ans." },
+      { label: "OverTheWire",              url: "https://overthewire.org/wargames/", desc: "Wargames Linux progressifs. Bandit pour débuter." },
+    ],
+  },
+  {
+    titre: "Chaînes YouTube — FR",
+    emoji: "🎥",
+    items: [
+      { label: "Cocadmin",       url: "https://www.youtube.com/@cocadmin", desc: "Sysadmin/DevOps + vie de dev. Pédago + bon humour." },
+      { label: "Micode",         url: "https://www.youtube.com/@Micode", desc: "Vulgarisation cyber + actu sécu. Excellente production." },
+      { label: "Underscore_",    url: "https://www.youtube.com/@Underscore_", desc: "Interviews tech, débats, vulgarisation." },
+      { label: "Stupéfiant",     url: "https://www.youtube.com/@_Stupefiant", desc: "Tech + culture, ton chill." },
+      { label: "Vincent Maille / 0x0ff", url: "https://www.youtube.com/@0x0ff", desc: "Sécu offensive, en FR, technique." },
+    ],
+  },
+  {
+    titre: "Chaînes YouTube — EN",
+    emoji: "🌍",
+    intro: "Lire/écouter de l'anglais tech est non-négociable pour progresser. Démarre doucement.",
+    items: [
+      { label: "LiveOverflow",       url: "https://www.youtube.com/@LiveOverflow", desc: "CTF + reverse engineering. Niveau intermédiaire." },
+      { label: "NetworkChuck",       url: "https://www.youtube.com/@NetworkChuck", desc: "Cloud, réseau, sécu. Très pédago, bonne énergie." },
+      { label: "John Hammond",       url: "https://www.youtube.com/@_JohnHammond", desc: "CTF / sécu offensive, beaucoup de walkthroughs." },
+      { label: "Fireship",           url: "https://www.youtube.com/@Fireship", desc: "Tech news + tutos super condensés (100s vidéos)." },
+    ],
+  },
+  {
+    titre: "Podcasts (FR)",
+    emoji: "🎙️",
+    items: [
+      { label: "NoLimitSecu",    url: "https://www.nolimitsecu.fr", desc: "Podcast cyber francophone de référence." },
+      { label: "Le Comptoir Sécu", url: "https://www.comptoirsecu.fr", desc: "Discussions cyber détendues, accessibles." },
+      { label: "Programmez !",   url: "https://www.programmez.com", desc: "Mag dev FR, papier + podcast." },
+    ],
+  },
+  {
+    titre: "Linux & open source",
+    emoji: "🐧",
+    intro: "Si tu veux bidouiller chez toi, démarre par là.",
+    items: [
+      { label: "Debian",             url: "https://debian.org", desc: "Distribution Linux solide. Stable, ennuyeuse au bon sens du terme." },
+      { label: "Linux Mint",         url: "https://linuxmint.com", desc: "Ubuntu-based, parfait pour basculer depuis Windows." },
+      { label: "F-Droid",            url: "https://f-droid.org", desc: "Apps Android open source, alternative au Play Store." },
+      { label: "Awesome Selfhosted", url: "https://github.com/awesome-selfhosted/awesome-selfhosted", desc: "Le catalogue des logiciels self-hostable. 800+ entrées." },
+      { label: "Linux Handbook (FR)", url: "https://linuxhandbook.com", desc: "Tutos Linux concrets." },
+    ],
+  },
+  {
+    titre: "Communautés",
+    emoji: "💬",
+    items: [
+      { label: "r/cybersecurity",       url: "https://reddit.com/r/cybersecurity", desc: "Subreddit principal cyber, en EN." },
+      { label: "r/selfhosted",          url: "https://reddit.com/r/selfhosted", desc: "Ta dose quotidienne de homelab inspiration." },
+      { label: "Hack The Box Discord",  url: "https://discord.com/invite/hackthebox", desc: "Très actif, beaucoup d'entraide." },
+      { label: "Discord du France Cybersecurity Challenge", url: "https://www.france-cybersecurity-challenge.fr/", desc: "Communauté FCSC, tous niveaux." },
+    ],
+  },
+  {
+    titre: "Livres entry-level",
+    emoji: "📚",
+    items: [
+      { label: "« L'art de l'invisibilité » — Kevin Mitnick", desc: "Hygiène numérique grand public, écrit par un ancien hacker repenti." },
+      { label: "« The Pragmatic Programmer » — Hunt & Thomas", desc: "Bible des bonnes pratiques dev. Lecture longue mais structurante." },
+      { label: "« Comment les hackers raisonnent » — Bruno Kerouanton", desc: "Mindset cyber, en français." },
+      { label: "« Crafting Interpreters » — Robert Nystrom", desc: "Tu veux comprendre vraiment comment marche un langage de programmation ? C'est ce livre. Gratuit en ligne." },
+    ],
+  },
+];
+---
+
+<Layout title="Pour aller plus loin">
+  <h1 class="mb-2 font-display text-3xl font-bold">Pour aller plus loin</h1>
+  <p class="mb-8 text-ink-400">
+    Tout ce qui suit est gratuit ou pas cher, francophone autant que possible.
+    Tu n'as pas besoin de tout suivre — pioche ce qui te parle, ignore le reste.
+  </p>
+
+  <div class="grid gap-6 sm:grid-cols-2">
+    {SECTIONS.map((s) => (
+      <section class="rounded-lg border border-ink-800 bg-ink-900/40 p-5">
+        <h2 class="font-display text-lg font-semibold flex items-center gap-2">
+          <span class="text-xl">{s.emoji}</span> {s.titre}
+        </h2>
+        {s.intro && <p class="mt-1 text-xs text-ink-400">{s.intro}</p>}
+        <ul class="mt-3 space-y-2 text-sm">
+          {s.items.map((r) => (
+            <li>
+              {r.url ? (
+                <a href={r.url} target="_blank" rel="noreferrer" class="text-accent-400 hover:underline">
+                  {r.label}
+                </a>
+              ) : (
+                <span class="text-ink-100 font-medium">{r.label}</span>
+              )}
+              {r.desc && <span class="text-ink-400"> — {r.desc}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+
+  <div class="mt-12 rounded-lg border border-accent-500/30 bg-accent-500/5 p-6 text-sm text-ink-200">
+    <p class="font-display text-lg font-semibold text-accent-400">Un dernier truc.</p>
+    <p class="mt-2">
+      La meilleure manière d'apprendre dans la tech, c'est de <strong>construire quelque chose</strong> :
+      un petit script qui résout un problème perso, un bot Discord pour ton serveur, un site web idiot, un homelab dans ta chambre.
+    </p>
+    <p class="mt-2">
+      Tu apprends 10× plus vite en bricolant qu'en regardant des tutos. Et tu te constitues un portfolio sans t'en rendre compte.
+      Commence ce week-end. Vraiment.
+    </p>
+  </div>
+</Layout>

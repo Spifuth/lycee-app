@@ -1,0 +1,24 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MetierGrid from "../components/MetierGrid";
+---
+
+<Layout title="Métiers">
+  <h1 class="mb-2 font-display text-3xl font-bold">10 métiers de la tech</h1>
+  <p class="mb-8 text-ink-400">
+    Recto : ce que c'est en une phrase. Verso (clic) : quotidien, outils, salaire, parcours, pour qui ça colle.
+    Tous les chiffres salaires sont indicatifs (France, brut annuel, début 2026).
+  </p>
+
+  <MetierGrid client:load />
+
+  <div class="mt-12 rounded-lg border border-ink-800 bg-ink-900/40 p-5 text-sm text-ink-300">
+    <p class="font-mono text-xs text-ink-500"># note</p>
+    <p class="mt-2">
+      Cette liste est <strong>très loin d'être exhaustive</strong>. Il manque :
+      product manager tech, designer UX, journaliste tech, formateur·rice, chef de projet,
+      consultant·e infosec, juriste cyber, communicant·e tech, etc.
+      Le point commun : tu n'as pas besoin de tout savoir coder pour bosser dans la tech.
+    </p>
+  </div>
+</Layout>

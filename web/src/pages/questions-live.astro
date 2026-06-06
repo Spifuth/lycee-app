@@ -1,0 +1,14 @@
+---
+import Layout from "../layouts/Layout.astro";
+import QuestionsLive from "../components/QuestionsLive";
+---
+
+<Layout title="Questions — wall live">
+  <h1 class="mb-2 font-display text-3xl font-bold">Wall des questions</h1>
+  <p class="mb-8 text-ink-400">
+    Toutes les questions de la session, en live et anonymisées.
+    L'intervenant les voit aussi sur son tel et y répond au fur et à mesure.
+  </p>
+
+  <QuestionsLive client:load />
+</Layout>

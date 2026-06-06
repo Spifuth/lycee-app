@@ -1,0 +1,57 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AuthModal from "../components/AuthModal";
+---
+
+<Layout title="Découvre l'informatique">
+  <section class="grid gap-10 py-10 md:grid-cols-[1.2fr_1fr] md:py-16">
+    <div class="space-y-6">
+      <p class="font-mono text-sm text-accent-400">$ welcome --pseudo &lt;tu&gt;</p>
+      <h1 class="font-display text-4xl font-extrabold leading-tight md:text-5xl">
+        Salut. <span class="text-accent-400">Bienvenue dans l'informatique.</span>
+      </h1>
+      <p class="max-w-xl text-lg text-ink-300">
+        Ce site est fait pour toi, lycéen·ne en STI2D SIN.
+        Tu vas y trouver de quoi comprendre <span class="text-accent-400">l'info, la cyber, l'IA</span> — et surtout
+        des pistes pour creuser ce qui t'intéresse.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <button
+          id="cta-signup"
+          class="rounded bg-accent-500 px-5 py-2.5 font-semibold text-ink-950 shadow-glow hover:bg-accent-400"
+        >
+          Crée ton compte
+        </button>
+        <a
+          href="/accueil"
+          class="rounded border border-ink-700 px-5 py-2.5 font-semibold text-ink-200 hover:border-accent-500 hover:text-accent-400"
+        >
+          Juste visiter
+        </a>
+      </div>
+      <p class="font-mono text-xs text-ink-500">
+        Pas de mail, pas de tel. Juste un pseudo et une passphrase de 4 mots.
+      </p>
+    </div>
+    <aside class="rounded-lg border border-ink-800 bg-ink-900/50 p-6 font-mono text-sm text-ink-300">
+      <p class="text-ink-500"># ce que tu vas y trouver</p>
+      <ul class="mt-2 space-y-1">
+        <li>· <span class="text-accent-400">vote</span> — choisis les sujets de la session</li>
+        <li>· <span class="text-accent-400">cyber</span> — c'est quoi vraiment</li>
+        <li>· <span class="text-accent-400">ia</span> — démo live d'une IA chez moi</li>
+        <li>· <span class="text-accent-400">métiers</span> — 10 cartes flippables</li>
+        <li>· <span class="text-accent-400">animations</span> — comment ça marche</li>
+        <li>· <span class="text-accent-400">parcours</span> — après le bac</li>
+        <li>· <span class="text-accent-400">quiz</span> — 30 questions</li>
+        <li>· <span class="text-accent-400">questions</span> — anonyme</li>
+      </ul>
+    </aside>
+  </section>
+
+  <AuthModal client:load />
+  <script>
+    document.getElementById("cta-signup")?.addEventListener("click", () => {
+      window.dispatchEvent(new CustomEvent("open-auth", { detail: { mode: "signup" } }));
+    });
+  </script>
+</Layout>

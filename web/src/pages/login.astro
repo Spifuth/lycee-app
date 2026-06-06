@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AuthModal from "../components/AuthModal";
+---
+
+<Layout title="Connexion">
+  <div class="mx-auto max-w-md py-8">
+    <h1 class="mb-2 font-display text-3xl font-bold">Connexion</h1>
+    <p class="mb-6 text-ink-400">Entre ton pseudo et ta passphrase de 4 mots.</p>
+    <AuthModal client:load initialMode="login" forcedOpen />
+  </div>
+</Layout>

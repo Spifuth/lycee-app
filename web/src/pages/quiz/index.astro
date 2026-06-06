@@ -1,0 +1,13 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import QuizThemeGrid from "../../components/QuizThemeGrid";
+---
+
+<Layout title="Quiz">
+  <h1 class="mb-2 font-display text-3xl font-bold">Quiz géant</h1>
+  <p class="mb-8 text-ink-400">
+    6 thèmes × 5 questions. Explication après chaque réponse — l'objectif c'est d'apprendre, pas de te coller un score sur ta scolarité.
+  </p>
+
+  <QuizThemeGrid client:load />
+</Layout>

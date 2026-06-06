@@ -1,0 +1,176 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+interface Voie {
+  nom: string;
+  emoji: string;
+  duree: string;
+  selectivite: string;
+  type: string;
+  cout: string;
+  alternance: string;
+  apres: string;
+  pourQui: string;
+  color: string;
+}
+
+const VOIES: Voie[] = [
+  {
+    nom: "BTS SIO option SISR / SLAM",
+    emoji: "💼",
+    duree: "2 ans",
+    selectivite: "Faible (Parcoursup, profil cohérent suffit)",
+    type: "Pro / pratique",
+    cout: "Public : gratuit · privé : 5-8k€/an",
+    alternance: "Très courante (50% des étudiants)",
+    apres: "Embauche directe · ou bachelor / BUT en année 3",
+    pourQui: "Tu veux entrer vite dans le monde du travail. SISR = admin sys / réseau / sécu. SLAM = dev.",
+    color: "#22c55e",
+  },
+  {
+    nom: "BUT R&T (Réseaux & Télécoms)",
+    emoji: "📡",
+    duree: "3 ans",
+    selectivite: "Sélectif (sur dossier Parcoursup)",
+    type: "Pro/théorique équilibré",
+    cout: "Public : gratuit",
+    alternance: "Disponible souvent en année 2-3",
+    apres: "Embauche · ou master / école d'ingé (passerelle)",
+    pourQui: "Tu kiffes les réseaux, les serveurs, le matériel. Bonne porte d'entrée cyber + cloud.",
+    color: "#60a5fa",
+  },
+  {
+    nom: "BUT Informatique",
+    emoji: "💻",
+    duree: "3 ans",
+    selectivite: "Sélectif",
+    type: "Pro/théorique équilibré",
+    cout: "Public : gratuit",
+    alternance: "Très courante en année 2-3",
+    apres: "Embauche dev · master · école d'ingé passerelle",
+    pourQui: "Tu veux coder + comprendre les bases CS sans aller jusqu'à 5 ans d'études.",
+    color: "#a855f7",
+  },
+  {
+    nom: "École d'ingé post-bac (5 ans)",
+    emoji: "🏛️",
+    duree: "5 ans (2+3)",
+    selectivite: "Sélectif (concours Avenir, Puissance Alpha, etc.)",
+    type: "Très théorique au début, pro en fin",
+    cout: "Public : ~600€/an · privé : 7-12k€/an",
+    alternance: "Souvent en année 4-5",
+    apres: "Très bonne employabilité, ingé R&D, dev senior, archi",
+    pourQui: "Tu acceptes 2 ans intensifs maths/physique puis spécialisation. Style INSA, UTC, EFREI, EPITA, ESILV.",
+    color: "#3b82f6",
+  },
+  {
+    nom: "Prépa MP/MPI → école d'ingé",
+    emoji: "📐",
+    duree: "5 ans (2+3)",
+    selectivite: "Très sélectif (en sortie) · admission prépa = lycée",
+    type: "Théorique intense puis pro",
+    cout: "Public : gratuit + bourses",
+    alternance: "Disponible en école · pas en prépa",
+    apres: "Top des écoles d'ingé françaises (Centrale, Mines, X, ENS...)",
+    pourQui: "Tu aimes les maths abstraites, tu es prêt·e à 2 ans de gros effort. Voie la plus exigeante mais la plus ouverte.",
+    color: "#f97316",
+  },
+  {
+    nom: "Licence Info → Master",
+    emoji: "🎓",
+    duree: "5 ans (3+2)",
+    selectivite: "Licence : non sélective · Master : sélectif",
+    type: "Très théorique, recherche-friendly",
+    cout: "Public : ~250€/an + sécu",
+    alternance: "Plus rare, mais en master ça existe",
+    apres: "Doctorat possible · R&D · enseignement · embauche dev/data",
+    pourQui: "Tu veux comprendre l'informatique fondamentale (algos, théorie, IA), tu envisages la recherche.",
+    color: "#a855f7",
+  },
+  {
+    nom: "Alternance dès le départ",
+    emoji: "🤝",
+    duree: "2-5 ans selon diplôme",
+    selectivite: "Variable · trouver l'entreprise est souvent la partie difficile",
+    type: "75% pro / 25% école",
+    cout: "Payé (smic minimum, souvent +)",
+    alternance: "C'est le modèle entier",
+    apres: "Souvent embauche dans l'entreprise d'accueil",
+    pourQui: "Tu veux gagner ta vie tout de suite, apprendre sur le tas, et tu as déjà un peu de bouteille (projets persos, stages).",
+    color: "#14b8a6",
+  },
+  {
+    nom: "Autodidacte + certifs",
+    emoji: "🦊",
+    duree: "Variable (1-3 ans pour devenir opérationnel)",
+    selectivite: "Aucune barrière d'entrée · barrière à la sortie : prouver tes compétences",
+    type: "100% projet personnel",
+    cout: "Quasi gratuit (certifs : 100-500€)",
+    alternance: "N/A",
+    apres: "Embauche possible si portfolio solide · CompTIA Sec+, OSCP, AWS, etc.",
+    pourQui: "Tu es discipliné·e, tu finis tes projets perso, tu sais te vendre sans diplôme. Réaliste avec un peu plus d'effort sur la chasse de stage / 1er emploi.",
+    color: "#ec4899",
+  },
+];
+
+const COLS = [
+  { key: "duree",       label: "Durée" },
+  { key: "selectivite", label: "Sélectivité" },
+  { key: "type",        label: "Type" },
+  { key: "cout",        label: "Coût" },
+  { key: "alternance",  label: "Alternance" },
+  { key: "apres",       label: "Après ?" },
+];
+---
+
+<Layout title="Parcours d'études">
+  <h1 class="mb-2 font-display text-3xl font-bold">Après le bac — les parcours</h1>
+  <p class="mb-8 text-ink-400">
+    7 voies pour faire de l'info / cyber. Aucune n'est meilleure que l'autre — elles répondent à des questions différentes.
+    Choisis celle qui colle à <em>ton</em> rythme et <em>ta</em> manière d'apprendre.
+  </p>
+
+  <div class="space-y-4">
+    {VOIES.map((v) => (
+      <article
+        class="rounded-lg border border-ink-800 bg-ink-900/40 p-5"
+        style={`border-left: 4px solid ${v.color}`}
+      >
+        <header class="flex items-baseline gap-3 mb-3 flex-wrap">
+          <span class="text-2xl">{v.emoji}</span>
+          <h2 class="font-display text-xl font-semibold text-ink-100">{v.nom}</h2>
+        </header>
+
+        <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+          {COLS.map((c) => (
+            <div>
+              <dt class="font-mono text-[10px] uppercase tracking-wide text-ink-500">{c.label}</dt>
+              <dd class="text-ink-200">{(v as any)[c.key]}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <p class="mt-4 rounded bg-ink-950/60 p-3 text-sm italic text-ink-300">
+          <span class="font-mono text-xs text-ink-500">→ pour qui : </span>{v.pourQui}
+        </p>
+      </article>
+    ))}
+  </div>
+
+  <div class="mt-12 grid gap-4 md:grid-cols-2">
+    <div class="rounded-lg border border-accent-500/30 bg-accent-500/5 p-5">
+      <p class="font-mono text-xs text-accent-400">CONSEIL #1 — VOIE PAS LINÉAIRE OK</p>
+      <p class="mt-2 text-sm text-ink-200">
+        Tu peux faire un BTS, hésiter, rejoindre une école d'ingé par passerelle, partir en alternance, revenir en master.
+        Personne dans ce métier ne suit la trajectoire « parfaite » du début à la fin.
+      </p>
+    </div>
+    <div class="rounded-lg border border-accent-500/30 bg-accent-500/5 p-5">
+      <p class="font-mono text-xs text-accent-400">CONSEIL #2 — DIPLÔME ≠ COMPÉTENCE</p>
+      <p class="mt-2 text-sm text-ink-200">
+        Le diplôme ouvre la porte du premier entretien. Le portfolio (projets persos, GitHub, écrits) la franchit.
+        Commence à construire <em>quelque chose</em> dès maintenant, peu importe la voie choisie.
+      </p>
+    </div>
+  </div>
+</Layout>

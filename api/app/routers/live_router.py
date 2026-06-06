@@ -21,6 +21,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 from sqlalchemy import desc, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import auth, badges, quiz
@@ -150,6 +151,48 @@ def _calc_score(elapsed_ms: int, duration_s: int) -> int:
         return 500
     fraction = max(0.0, min(1.0, elapsed_ms / total_ms))
     return round(1000 * (1.0 - fraction / 2.0))
+
+
+def record_live_answer(
+    db: Session,
+    *,
+    session_id: int,
+    pseudo: str,
+    q_id: str,
+    choice: int,
+    is_correct: bool,
+    score: int,
+    elapsed_ms: int,
+    participant: LiveParticipant,
+) -> tuple[dict, bool]:
+    """Insert a LiveAnswer + bump the participant score, atomically.
+
+    Returns (result_payload, created). On a unique-constraint race (the player
+    double-submitted), rolls back and returns the already-recorded answer with
+    created=False, so the caller responds 200 instead of 500 and the score is
+    counted exactly once.
+    """
+    db.add(LiveAnswer(
+        session_id=session_id, pseudo=pseudo, q_id=q_id,
+        choice=choice, is_correct=is_correct, score=score, elapsed_ms=elapsed_ms,
+    ))
+    participant.score = (participant.score or 0) + score
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        existing = db.execute(
+            select(LiveAnswer).where(
+                LiveAnswer.session_id == session_id,
+                LiveAnswer.pseudo == pseudo,
+                LiveAnswer.q_id == q_id,
+            )
+        ).scalar_one()
+        return (
+            {"score": existing.score, "is_correct": existing.is_correct, "already_answered": True},
+            False,
+        )
+    return ({"score": score, "is_correct": is_correct, "elapsed_ms": elapsed_ms}, True)
 
 
 def _serialize_state_for_player(db: Session, session: LiveSession, viewer_pseudo: str | None) -> dict[str, Any]:
@@ -417,23 +460,25 @@ def player_answer(
     if existing is not None:
         return {"score": existing.score, "is_correct": existing.is_correct, "already_answered": True}
 
-    qstart = s.question_started_at
-    if qstart and qstart.tzinfo is None:
-        qstart = qstart.replace(tzinfo=timezone.utc)
-    elapsed_ms = int((_utcnow() - qstart).total_seconds() * 1000) if qstart else 0
+    elapsed_ms = (
+        int((_utcnow() - s.question_started_at).total_seconds() * 1000)
+        if s.question_started_at else 0
+    )
     is_correct = payload.choice == shuffled_answer_idx
     score = _calc_score(elapsed_ms, s.question_duration_s) if is_correct else 0
 
-    db.add(LiveAnswer(
-        session_id=s.id, pseudo=user.pseudo, q_id=q.id,
+    result, created = record_live_answer(
+        db, session_id=s.id, pseudo=user.pseudo, q_id=q.id,
         choice=payload.choice, is_correct=is_correct,
-        score=score, elapsed_ms=elapsed_ms,
-    ))
-    part.score = (part.score or 0) + score
-    db.flush()
-    granted = badges.maybe_unlock_on_live_answer(db, user.pseudo, elapsed_ms=elapsed_ms, is_correct=is_correct)
+        score=score, elapsed_ms=elapsed_ms, participant=part,
+    )
+    if not created:
+        return result
+    granted = badges.maybe_unlock_on_live_answer(
+        db, user.pseudo, elapsed_ms=elapsed_ms, is_correct=is_correct
+    )
     db.commit()
-    return {"score": score, "is_correct": is_correct, "elapsed_ms": elapsed_ms, "badges_granted": granted}
+    return {**result, "badges_granted": granted}
 
 
 # ---------- SSE state stream ----------

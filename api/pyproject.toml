@@ -15,6 +15,7 @@ dependencies = [
     "pydantic-settings>=2.7",
     "httpx>=0.28",
     "python-multipart>=0.0.20",
+    "alembic>=1.14",
 ]
 
 [build-system]
@@ -24,3 +25,14 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "alembic>=1.14",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

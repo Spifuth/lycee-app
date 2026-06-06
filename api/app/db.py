@@ -18,14 +18,20 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, futu
 
 
 @event.listens_for(Engine, "connect")
-def _enable_sqlite_fk(dbapi_connection, connection_record):
-    """SQLite ignore les FK par défaut. On force PRAGMA foreign_keys=ON à chaque
-    nouvelle connexion pour que les ON DELETE CASCADE déclarés dans les modèles
-    fonctionnent réellement (sinon les enfants restent orphelins).
+def _configure_sqlite(dbapi_connection, connection_record):
+    """Per-connection SQLite tuning.
+
+    - foreign_keys=ON: SQLite ignores FKs by default; needed for ON DELETE CASCADE.
+    - journal_mode=WAL: readers (SSE pollers) don't block the writer (/answer).
+    - busy_timeout=5000: wait up to 5s on a lock instead of raising immediately.
+    - synchronous=NORMAL: safe under WAL, faster commits.
     """
     if isinstance(dbapi_connection, sqlite3.Connection):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=5000")
+        cursor.execute("PRAGMA synchronous=NORMAL")
         cursor.close()
 
 

@@ -11,3 +11,4 @@ def test_connect_listener_sets_pragmas(tmp_path):
         assert conn.execute(text("PRAGMA journal_mode")).scalar().lower() == "wal"
         assert conn.execute(text("PRAGMA busy_timeout")).scalar() == 5000
         assert conn.execute(text("PRAGMA foreign_keys")).scalar() == 1
+        assert conn.execute(text("PRAGMA synchronous")).scalar() == 1  # NORMAL

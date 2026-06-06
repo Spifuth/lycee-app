@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from .. import auth, badges
+from .. import auth, badges, state
 from ..config import settings
 from ..db import get_db
 from ..limiter import limiter
@@ -112,7 +112,7 @@ def get_stats(db: Session = Depends(get_db)):
     if _STATS_CACHE["value"] is not None and now - _STATS_CACHE["at"] < 30:
         return _STATS_CACHE["value"]
 
-    from ..models import AppState, Question
+    from ..models import Question
 
     users_total = db.execute(select(func.count(User.pseudo))).scalar_one()
     one_day_ago = func.datetime("now", "-1 day")
@@ -130,8 +130,7 @@ def get_stats(db: Session = Depends(get_db)):
     ).scalar_one()
     questions_asked = db.execute(select(func.count(Question.id))).scalar_one()
 
-    state = db.execute(select(AppState).where(AppState.key == "vote_open")).scalar_one_or_none()
-    vote_open = bool(state.value.get("open", False)) if state and isinstance(state.value, dict) else False
+    vote_open = state.is_vote_open(db)
 
     out = StatsOut(
         users_total=users_total,

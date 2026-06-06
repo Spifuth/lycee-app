@@ -15,6 +15,9 @@ COPY pyproject.toml ./
 RUN pip install --no-cache-dir -e .
 
 COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini entrypoint.sh ./
+RUN chmod +x entrypoint.sh
 
 # Note: runs as root inside the container so the SQLite bind-mount at /data
 # is writable regardless of the host user that owns it. Container isolation
@@ -30,4 +33,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # uvicorn ignore X-Forwarded-For et request.client.host = l'IP du conteneur nginx
 # pour TOUS les clients → la limite slowapi par-IP devient un seul compteur global
 # (5 inscriptions/h pour l'app entière). On fait confiance au XFF posé par nginx.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+CMD ["./entrypoint.sh"]

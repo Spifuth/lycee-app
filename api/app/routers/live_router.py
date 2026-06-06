@@ -187,7 +187,13 @@ def record_live_answer(
                 LiveAnswer.pseudo == pseudo,
                 LiveAnswer.q_id == q_id,
             )
-        ).scalar_one()
+        ).scalar_one_or_none()
+        # If there's no existing answer, the IntegrityError wasn't the uq_lanswer
+        # duplicate (e.g. an FK violation) — surface the real error rather than
+        # masking it. (SQLite reports violated columns, not the constraint name,
+        # so we can't reliably match on the message.)
+        if existing is None:
+            raise
         return (
             {"score": existing.score, "is_correct": existing.is_correct, "already_answered": True},
             False,

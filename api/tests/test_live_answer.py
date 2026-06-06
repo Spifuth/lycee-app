@@ -1,3 +1,5 @@
+from sqlalchemy import select
+
 from app.models import LiveAnswer, LiveParticipant, LiveSession, User
 from app.routers.live_router import record_live_answer
 
@@ -24,6 +26,9 @@ def test_first_record_inserts_and_scores(db):
     assert created is True
     assert result["score"] == 900
     assert part.score == 900
+    # The row is actually persisted (the helper commits).
+    row = db.execute(select(LiveAnswer).where(LiveAnswer.q_id == "q1")).scalar_one_or_none()
+    assert row is not None and row.score == 900
 
 
 def test_duplicate_record_returns_existing_without_500(db):

@@ -162,6 +162,13 @@ class LiveBroadcaster:
     def maybe_stop_poller(self) -> None:
         if not self._queues and self._poller is not None and not self._poller.done():
             self._poller.cancel()
+            # Clear the reference so a client that reconnects during the (≤interval)
+            # cancellation window starts a fresh poller immediately. The cancelled
+            # task keeps running until its next `await` and then dies, so there may
+            # be two pollers for <0.5s — harmless (publish is idempotent, snapshots
+            # identical). Keeping the reference instead would starve a reconnecting
+            # client: ensure_poller would see a not-yet-done task and decline to
+            # start one, then that task dies and nothing replaces it.
             self._poller = None
 
 

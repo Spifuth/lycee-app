@@ -10,6 +10,7 @@ Les joueurs voient l'état via SSE sur GET /api/live/state (polling DB côté se
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import random
 from datetime import datetime, timezone
@@ -489,7 +490,8 @@ def player_answer(
 async def stream_state(request: Request):
     """SSE stream backed by the shared LiveBroadcaster (one DB poll per tick for
     all clients). Viewer-specific fields are merged in-process per client."""
-    import json
+    # Function-local import breaks the import cycle (live_broadcast imports helpers
+    # from this module at top level).
     from ..live_broadcast import broadcaster, merge_viewer, _poll_loop
 
     pseudo: str | None = None

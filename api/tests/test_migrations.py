@@ -26,3 +26,11 @@ def test_upgrade_head_creates_all_tables(tmp_path):
     insp = inspect(create_engine(env_url, future=True))
     tables = set(insp.get_table_names())
     assert EXPECTED_TABLES.issubset(tables), EXPECTED_TABLES - tables
+
+    # The columns previously created by the ad-hoc _ensure_column migrations must
+    # survive in the Alembic baseline — that parity is the whole point of Task 10.
+    question_cols = {c["name"] for c in insp.get_columns("questions")}
+    assert {"discord_message_id", "discord_thread_id", "flagged", "flagged_reason"}.issubset(question_cols)
+    user_cols = {c["name"] for c in insp.get_columns("users")}
+    assert {"custom_avatar_filename", "custom_avatar_status"}.issubset(user_cols)
+    assert "question_order" in {c["name"] for c in insp.get_columns("live_sessions")}

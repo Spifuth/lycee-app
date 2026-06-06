@@ -16,8 +16,9 @@ from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from . import quiz
+from .db import SessionLocal
 from .models import LiveAnswer, LiveParticipant, LiveSession
-from .routers.live_router import _question_for, _total_questions, _utcnow
+from .routers.live_router import _get_active_session, _question_for, _total_questions, _utcnow
 
 
 @dataclass
@@ -165,3 +166,25 @@ class LiveBroadcaster:
 
 
 broadcaster = LiveBroadcaster()
+
+
+async def _poll_loop(interval_s: float = 0.5) -> None:
+    """Single shared loop: compute one snapshot per tick, publish on change."""
+    import json
+    last_serial: str | None = None
+    while True:
+        try:
+            with SessionLocal() as db:
+                session = _get_active_session(db)
+                snap = compute_snapshot(db, session)
+            serial = (
+                json.dumps(snap.shared, default=str, ensure_ascii=False)
+                + json.dumps(snap.participants_by_pseudo, default=str)
+                + json.dumps(snap.answers_by_pseudo, default=str)
+            )
+            if serial != last_serial:
+                broadcaster.publish(snap)
+                last_serial = serial
+        except Exception:
+            log.exception("live poll loop error")
+        await asyncio.sleep(interval_s)

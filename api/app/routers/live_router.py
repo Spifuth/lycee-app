@@ -10,7 +10,6 @@ Les joueurs voient l'état via SSE sur GET /api/live/state (polling DB côté se
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import random
 from datetime import datetime, timezone
@@ -27,7 +26,7 @@ from sqlalchemy.orm import Session
 from .. import auth, badges, quiz
 from ..auth import verify_password
 from ..config import settings
-from ..db import get_db, SessionLocal
+from ..db import get_db
 from ..models import LiveAnswer, LiveParticipant, LiveSession, User
 
 router = APIRouter(prefix="/api/live", tags=["live"])
@@ -59,10 +58,7 @@ def _maybe_auto_reveal(db: Session, s: LiveSession) -> None:
     """
     if s.state != "question" or s.question_started_at is None:
         return
-    qstart = s.question_started_at
-    if qstart.tzinfo is None:
-        qstart = qstart.replace(tzinfo=timezone.utc)
-    elapsed = (_utcnow() - qstart).total_seconds()
+    elapsed = (_utcnow() - s.question_started_at).total_seconds()
     if elapsed >= s.question_duration_s:
         s.state = "between"
         s.updated_at = _utcnow()
@@ -249,8 +245,7 @@ def _serialize_state_for_player(db: Session, session: LiveSession, viewer_pseudo
             # answer NOT included
         }
         if session.question_started_at:
-            qstart = session.question_started_at.replace(tzinfo=timezone.utc) if session.question_started_at.tzinfo is None else session.question_started_at
-            elapsed = (_utcnow() - qstart).total_seconds()
+            elapsed = (_utcnow() - session.question_started_at).total_seconds()
             payload["seconds_left"] = max(0.0, session.question_duration_s - elapsed)
         else:
             payload["seconds_left"] = session.question_duration_s
@@ -490,31 +485,13 @@ def player_answer(
 # ---------- SSE state stream ----------
 
 
-async def _state_stream(request: Request, viewer_pseudo: str | None) -> AsyncIterator[bytes]:
-    """Polling DB toutes les 500ms, push si changement."""
-    last_serial: str | None = None
-    while True:
-        if await request.is_disconnected():
-            break
-        try:
-            with SessionLocal() as db:
-                s = _get_active_session(db)
-                if s is None:
-                    payload = {"state": "no_session"}
-                else:
-                    payload = _serialize_state_for_player(db, s, viewer_pseudo)
-            serial = json.dumps(payload, default=str, ensure_ascii=False)
-            if serial != last_serial:
-                yield f"data: {serial}\n\n".encode("utf-8")
-                last_serial = serial
-        except Exception as e:
-            log.exception("live state stream error: %s", e)
-        await asyncio.sleep(0.5)
-
-
 @router.get("/state")
 async def stream_state(request: Request):
-    """SSE stream — état diffusé à tous les viewers, info perso si authed."""
+    """SSE stream backed by the shared LiveBroadcaster (one DB poll per tick for
+    all clients). Viewer-specific fields are merged in-process per client."""
+    import json
+    from ..live_broadcast import broadcaster, merge_viewer, _poll_loop
+
     pseudo: str | None = None
     token = request.cookies.get("session")
     if not token:
@@ -529,8 +506,30 @@ async def stream_state(request: Request):
         except HTTPException:
             pass
 
+    async def gen() -> AsyncIterator[bytes]:
+        q = broadcaster.subscribe()
+        broadcaster.ensure_poller(_poll_loop)
+        last_serial: str | None = None
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    snap = await asyncio.wait_for(q.get(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    yield b": keepalive\n\n"
+                    continue
+                payload = merge_viewer(snap, pseudo)
+                serial = json.dumps(payload, default=str, ensure_ascii=False)
+                if serial != last_serial:
+                    yield f"data: {serial}\n\n".encode("utf-8")
+                    last_serial = serial
+        finally:
+            broadcaster.unsubscribe(q)
+            broadcaster.maybe_stop_poller()
+
     return StreamingResponse(
-        _state_stream(request, pseudo),
+        gen(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -609,8 +608,7 @@ def admin_state(_: str = Depends(require_admin), db: Session = Depends(get_db)):
         payload["answers_distrib"] = distrib
 
         if s.state == "question" and s.question_started_at:
-            qstart = s.question_started_at.replace(tzinfo=timezone.utc) if s.question_started_at.tzinfo is None else s.question_started_at
-            elapsed = (_utcnow() - qstart).total_seconds()
+            elapsed = (_utcnow() - s.question_started_at).total_seconds()
             payload["seconds_left"] = max(0.0, s.question_duration_s - elapsed)
         else:
             payload["seconds_left"] = None

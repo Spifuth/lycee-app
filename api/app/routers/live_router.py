@@ -278,14 +278,16 @@ class CreateSessionIn(BaseModel):
     duration_s: int = Field(default=30, ge=5, le=120)
 
 
-@router.post("/admin/create")
-def admin_create(
-    payload: CreateSessionIn,
-    _: str = Depends(require_admin),
-    db: Session = Depends(get_db),
-):
-    if payload.theme_id not in quiz.BY_ID:
-        raise HTTPException(400, f"Thème inconnu : {payload.theme_id}")
+def op_create(db: Session, theme_id: str, duration_s: int) -> LiveSession:
+    """Create a fresh lobby session, aborting any non-finished active one first.
+
+    Shared by the JSON endpoint (admin_create) and the admin form handler
+    (admin_live_create). Validates the theme (400) and clamps duration to
+    [5, 120]. Returns the committed, refreshed LiveSession.
+    """
+    if theme_id not in quiz.BY_ID:
+        raise HTTPException(400, f"Thème inconnu : {theme_id}")
+    duration_s = max(5, min(120, duration_s))
     # Abort any active session first
     active = _get_active_session(db)
     if active and active.state != "finished":
@@ -293,20 +295,39 @@ def admin_create(
         active.updated_at = _utcnow()
 
     s = LiveSession(
-        theme_id=payload.theme_id,
+        theme_id=theme_id,
         state="lobby",
         current_q_idx=-1,
-        question_duration_s=payload.duration_s,
-        question_order=_build_shuffled_order(payload.theme_id),
+        question_duration_s=duration_s,
+        question_order=_build_shuffled_order(theme_id),
     )
     db.add(s)
     db.commit()
     db.refresh(s)
+    return s
+
+
+@router.post("/admin/create")
+def admin_create(
+    payload: CreateSessionIn,
+    _: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    s = op_create(db, payload.theme_id, payload.duration_s)
     return {"session_id": s.id, "state": s.state}
 
 
-@router.post("/admin/start")
-def admin_start(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+# ---------- shared transition ops ----------
+#
+# These op_* functions ARE the canonical live-quiz state machine. Both surfaces
+# share them: the JSON endpoints below are thin wrappers, and admin_router's
+# form handlers call them too (swallowing 404/409 for a forgiving redirect UX).
+# Each resolves the active session via _ensure_active (so auto-reveal applies),
+# enforces the canonical guard, mutates, awards badges where applicable, commits,
+# and returns the SAME dict the JSON endpoint historically returned.
+
+
+def op_start(db: Session) -> dict:
     s = _ensure_active(db)
     if s.state != "lobby":
         raise HTTPException(409, f"État incompatible : {s.state}")
@@ -318,8 +339,7 @@ def admin_start(_: str = Depends(require_admin), db: Session = Depends(get_db)):
     return {"state": s.state, "current_q_idx": s.current_q_idx}
 
 
-@router.post("/admin/reveal")
-def admin_reveal(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+def op_reveal(db: Session) -> dict:
     """Passe de 'question' → 'between' (révèle la bonne réponse + leaderboard)."""
     s = _ensure_active(db)
     if s.state != "question":
@@ -328,6 +348,17 @@ def admin_reveal(_: str = Depends(require_admin), db: Session = Depends(get_db))
     s.updated_at = _utcnow()
     db.commit()
     return {"state": s.state}
+
+
+@router.post("/admin/start")
+def admin_start(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    return op_start(db)
+
+
+@router.post("/admin/reveal")
+def admin_reveal(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    """Passe de 'question' → 'between' (révèle la bonne réponse + leaderboard)."""
+    return op_reveal(db)
 
 
 def _award_podium_badges(db: Session, session: LiveSession) -> None:
@@ -345,8 +376,7 @@ def _award_podium_badges(db: Session, session: LiveSession) -> None:
         badges.maybe_unlock_on_live_podium(db, part.pseudo, rank)
 
 
-@router.post("/admin/next")
-def admin_next(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+def op_next(db: Session) -> dict:
     """Passe à la question suivante. Si fin du quiz, finished."""
     s = _ensure_active(db)
     if s.state not in ("between", "question"):
@@ -366,8 +396,7 @@ def admin_next(_: str = Depends(require_admin), db: Session = Depends(get_db)):
     return {"state": s.state, "current_q_idx": s.current_q_idx}
 
 
-@router.post("/admin/finish")
-def admin_finish(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+def op_finish(db: Session) -> dict:
     s = _ensure_active(db)
     s.state = "finished"
     s.updated_at = _utcnow()
@@ -376,13 +405,28 @@ def admin_finish(_: str = Depends(require_admin), db: Session = Depends(get_db))
     return {"state": s.state}
 
 
-@router.post("/admin/abort")
-def admin_abort(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+def op_abort(db: Session) -> dict:
     s = _ensure_active(db)
     s.state = "aborted"
     s.updated_at = _utcnow()
     db.commit()
     return {"state": s.state}
+
+
+@router.post("/admin/next")
+def admin_next(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    """Passe à la question suivante. Si fin du quiz, finished."""
+    return op_next(db)
+
+
+@router.post("/admin/finish")
+def admin_finish(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    return op_finish(db)
+
+
+@router.post("/admin/abort")
+def admin_abort(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    return op_abort(db)
 
 
 # ---------- PLAYER endpoints ----------

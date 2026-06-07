@@ -48,6 +48,18 @@ Scope: two independent correctness fixes in the FastAPI backend (`api/`). Light-
 
 **Out of scope:** Alembic relocation (explicitly rejected), shutdown handlers, any other main.py refactor.
 
+## Task 3 — Restore admin preview of pending avatars (emergent, from final review)
+
+The Task 1 gate broke the admin moderation page (`GET /admin/avatars`): it previewed pending avatars via the now-gated public route, so they 404'd — admins could no longer see the images they must approve/reject. Fix (commit `78ca94a`):
+- Added `GET /admin/avatars/raw/{filename}` on the admin router, behind `Depends(require_admin)`, serving via `avatars_mod.path_for` (traversal-guarded) with NO approval check and `Cache-Control: no-store`. The admin is the one legitimate privileged reader of pending files; the page is already behind HTTP Basic so the `<img>` carries credentials.
+- Repointed the moderation page preview `<img src>` to the admin route.
+- Public `serve_avatar` gate unchanged. TestClient tests prove: pending file served to admin, 404 on missing/traversal, 401 without admin creds, and the page HTML now uses the admin route not the public one.
+
+## Deferred (noted, not done this branch)
+
+- `serve_avatar` carries `Cache-Control: public, max-age=86400` on a revocable resource (status can flip approved→un-approved). Pre-existing, not introduced here; consider `private`/shorter TTL/ETag in a later pass.
+- `media_type=image/jpg` (vs IANA `image/jpeg`) on both serve routes — pre-existing cosmetic nit.
+
 ## Definition of done
 
 - `cd api && python -m pytest -q` green, including the new tests.

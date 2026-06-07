@@ -10,6 +10,7 @@ import qrcode
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.orm import Session
 
 from .config import settings
@@ -110,6 +111,22 @@ def build_qr_data_url(payload: str) -> str:
     img.save(buf, format="PNG")
     b64 = base64.b64encode(buf.getvalue()).decode("ascii")
     return f"data:image/png;base64,{b64}"
+
+
+basic = HTTPBasic(realm="lycee-admin")
+ADMIN_USER = "admin"
+
+
+def require_admin(creds: HTTPBasicCredentials = Depends(basic)) -> str:
+    if not settings.admin_password_hash:
+        raise HTTPException(503, "Admin non configuré (LYCEE_ADMIN_PASSWORD_HASH manquant).")
+    if creds.username != ADMIN_USER or not verify_password(creds.password, settings.admin_password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Identifiants admin invalides.",
+            headers={"WWW-Authenticate": "Basic realm=lycee-admin"},
+        )
+    return creds.username
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:

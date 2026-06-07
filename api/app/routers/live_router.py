@@ -18,35 +18,19 @@ from typing import Any, AsyncIterator
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 from sqlalchemy import desc, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import auth, badges, quiz
-from ..auth import verify_password
+from ..auth import require_admin
 from ..config import settings
 from ..db import get_db
 from ..models import LiveAnswer, LiveParticipant, LiveSession, User
 
 router = APIRouter(prefix="/api/live", tags=["live"])
 log = logging.getLogger(__name__)
-
-basic = HTTPBasic(realm="lycee-admin")
-ADMIN_USER = "admin"
-
-
-def require_admin(creds: HTTPBasicCredentials = Depends(basic)) -> str:
-    if not settings.admin_password_hash:
-        raise HTTPException(503, "Admin non configuré.")
-    if creds.username != ADMIN_USER or not verify_password(creds.password, settings.admin_password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Identifiants admin invalides.",
-            headers={"WWW-Authenticate": "Basic realm=lycee-admin"},
-        )
-    return creds.username
 
 
 # ---------- helpers ----------

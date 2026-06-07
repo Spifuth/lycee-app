@@ -2,12 +2,11 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 from fastapi.responses import FileResponse, HTMLResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..auth import verify_password
+from ..auth import require_admin
 from .. import avatars as avatars_mod, discord, quiz, state, topics
 from ..config import settings
 from ..db import get_db
@@ -16,21 +15,6 @@ from ..models import LiveAnswer, LiveParticipant, LiveSession, Question, User, V
 from fastapi import Form
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-basic = HTTPBasic(realm="lycee-admin")
-
-ADMIN_USER = "admin"
-
-
-def require_admin(creds: HTTPBasicCredentials = Depends(basic)) -> str:
-    if not settings.admin_password_hash:
-        raise HTTPException(503, "Admin non configuré (LYCEE_ADMIN_PASSWORD_HASH manquant).")
-    if creds.username != ADMIN_USER or not verify_password(creds.password, settings.admin_password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Identifiants admin invalides.",
-            headers={"WWW-Authenticate": "Basic realm=lycee-admin"},
-        )
-    return creds.username
 
 
 def _page(body: str, active: str = "home") -> str:

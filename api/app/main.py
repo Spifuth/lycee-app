@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -9,8 +11,14 @@ from .limiter import limiter
 from .routers import admin_router, ai_router, auth_router, bot_router, events_router, live_router, profile_router, questions_router, quiz_router, vote_router
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title="Lycée App API", version="0.1.0")
+    app = FastAPI(title="Lycée App API", version="0.1.0", lifespan=lifespan)
 
     app.state.limiter = limiter
 
@@ -40,10 +48,6 @@ def create_app() -> FastAPI:
     @app.get("/health")
     def health():
         return {"status": "ok"}
-
-    @app.on_event("startup")
-    def _startup():
-        init_db()
 
     return app
 

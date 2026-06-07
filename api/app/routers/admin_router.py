@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -733,6 +733,24 @@ def _escape(s: str) -> str:
 # ============================================================================
 
 
+@router.get("/avatars/raw/{filename}")
+def serve_avatar_admin(filename: str, _: str = Depends(require_admin)):
+    """Serve any avatar file (pending or approved) for admin moderation previews.
+
+    Bypasses the approval gate intentionally — admins are the legitimate
+    privileged readers of pending files. The public route stays gated.
+    Cache-Control: no-store so stale moderation previews are never cached.
+    """
+    path = avatars_mod.path_for(filename)
+    if path is None:
+        raise HTTPException(404, "Avatar introuvable.")
+    return FileResponse(
+        path,
+        media_type=f"image/{path.suffix.lstrip('.')}",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
 @router.get("/avatars", response_class=HTMLResponse)
 def admin_avatars(
     _: str = Depends(require_admin),
@@ -747,7 +765,7 @@ def admin_avatars(
 
     def card(user: User) -> str:
         is_pending = user.custom_avatar_status == "pending"
-        url = f"/api/profile/avatar/{user.custom_avatar_filename}"
+        url = f"/admin/avatars/raw/{user.custom_avatar_filename}"
         bg = "border-terminal-amber/40 bg-terminal-amber/5" if is_pending else "border-ink-800 bg-ink-900/40"
         actions = (
             f"""<form method="post" action="/admin/avatars/{user.pseudo}/approve" style="display:inline">

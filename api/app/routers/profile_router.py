@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import auth, avatars as avatars_mod, badges
@@ -11,6 +13,31 @@ from ..db import get_db
 from ..models import Event, User
 
 router = APIRouter(prefix="/api/profile", tags=["profile"])
+
+
+def approved_avatar_path(db: Session, filename: str) -> Path | None:
+    """Return the on-disk Path for *filename* only when BOTH conditions hold:
+
+    1. The file exists on disk (and passes the traversal guard in ``path_for``).
+    2. A User row exists with ``custom_avatar_filename == filename`` and
+       ``custom_avatar_status == "approved"``.
+
+    Returns ``None`` in every other case (missing file, pending/null status,
+    no matching user row, traversal attempt).  Suitable for direct unit testing
+    against a ``db`` fixture without an HTTP layer.
+    """
+    path = avatars_mod.path_for(filename)
+    if path is None:
+        return None
+    user = db.scalar(
+        select(User).where(
+            User.custom_avatar_filename == filename,
+            User.custom_avatar_status == "approved",
+        )
+    )
+    if user is None:
+        return None
+    return path
 
 
 class BadgeOut(BaseModel):
@@ -159,9 +186,9 @@ def delete_my_avatar(
 
 
 @router.get("/avatar/{filename}")
-def serve_avatar(filename: str):
-    """Sert le fichier image. Public (URL non-secrète + déjà approuvée par admin)."""
-    path = avatars_mod.path_for(filename)
+def serve_avatar(filename: str, db: Session = Depends(get_db)):
+    """Sert le fichier image. Public uniquement pour les avatars approuvés par un admin."""
+    path = approved_avatar_path(db, filename)
     if path is None:
         raise HTTPException(404, "Avatar introuvable.")
     return FileResponse(

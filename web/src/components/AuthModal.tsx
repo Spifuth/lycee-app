@@ -55,6 +55,7 @@ export default function AuthModal({ initialMode = "signup", forcedOpen = false }
     setBusy(true);
     try {
       const out = await api.signup(pseudo, bio || undefined);
+      if (typeof umami !== "undefined") umami.track("signup_completed");
       setCredentials(out);
       setMode("passphrase-shown");
     } catch (e) {

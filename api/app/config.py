@@ -15,6 +15,10 @@ class Settings(BaseSettings):
 
     dicebear_url: str = "http://dicebear:3000"
     dicebear_style: str = "pixel-art"
+    # API-version segment of the DiceBear URL. This is a contract with the deployed
+    # dicebear/api image, NOT a constant: image v2 serves /9.x/, image v4 serves
+    # /10.x/ and 404s on /9.x/. Bump this in the same change as the image tag.
+    dicebear_api_version: str = "10.x"
 
     ollama_url: str = ""
     ollama_model: str = "qwen2.5:3b-instruct"

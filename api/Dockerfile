@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS base
+FROM python:3.12-alpine AS base
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -7,9 +7,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends curl libjpeg62-turbo zlib1g \
- && rm -rf /var/lib/apt/lists/*
+# alpine: apk, not apt-get. libjpeg-turbo/zlib are the runtime libs Pillow
+# (via qrcode[pil]) links against; curl backs the HEALTHCHECK below.
+RUN apk add --no-cache curl libjpeg-turbo zlib
 
 COPY pyproject.toml ./
 RUN pip install --no-cache-dir -e .

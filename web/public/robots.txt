@@ -1,0 +1,14 @@
+# Le site est privé et n'a jamais demandé aux robots de s'abstenir.
+#
+# `middlewares-secure-headers` pose `X-Robots-Tag: noindex` sur toute réponse de
+# l'infrastructure, ce qui se lit comme « les crawlers ont été prévenus ». Ils ne
+# l'ont pas été : X-Robots-Tag est un en-tête de RÉPONSE — un crawler doit donc
+# récupérer l'URL pour découvrir la directive. Crawler était le seul moyen
+# d'apprendre qu'il ne fallait pas crawler.
+#
+# Ce fichier est la moitié « requête » de cette intention. C'est aussi le
+# prérequis honnête avant de piéger un crawler *déclaré* : HellPot exempte les
+# moteurs de recherche précisément parce qu'un moteur conforme aurait sinon été
+# tarpité pour avoir fait la seule requête qui découvre `noindex`.
+User-agent: *
+Disallow: /

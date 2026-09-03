@@ -1,7 +1,7 @@
 # Sub-project A — Next.js shell, static pages, container
 
 **Date:** 2026-09-04
-**Status:** approved, not yet implemented
+**Status:** in progress — pages done, container/CI outstanding
 **Branch:** `feat/nextjs-shell` → PR into `dev`
 **Parent effort:** Astro → Next.js frontend migration (sub-projects A–G)
 
@@ -56,12 +56,18 @@ beside the existing `web/`. Both build, both ship, both are deployed, until
 sub-project D deletes `web/` and renames `web-next/` → `web/`. This is what
 makes the parallel-staging cutover possible.
 
-**Pages.** Exactly those that require no network call:
+**Pages.** Those that need no *feature* backend. Two shell-level calls survive
+the cut, both read-only-or-harmless and both degrading silently when the API is
+unreachable: `LiveStats` on `/accueil` polls `GET /api/stats` every 30s, and the
+Konami easter egg POSTs to `/api/easter-egg/konami`. nginx proxies `/api/` to the
+real `lycee-api`, so both work on staging against live data. (An earlier reading
+of this file claimed `/accueil` made no network call; that was wrong — the
+`api.stats()` call is split across two lines and was missed by grep.)
 
 | Route | Ported from | Island |
 |---|---|---|
 | `/` | `index.astro` | none in A — `AuthModal` is deferred to B |
-| `/accueil` | `accueil.astro` | `LiveStats` (no network — verified) |
+| `/accueil` | `accueil.astro` | `LiveStats` → `GET /api/stats`, 30s poll |
 | `/cyber` | `cyber.astro` | none |
 | `/metiers` | `metiers.astro` | `MetierGrid` (no network — verified) |
 | `/parcours` | `parcours.astro` | none |
@@ -201,10 +207,11 @@ easy to do carelessly — a dropped paragraph or a silently reworded sentence wo
 not fail any build. Mitigated by diffing each ported page against its Astro
 source before the page is considered done.
 
-**Tailwind 3 → 4 in the animations.** The 7 components were written against the
-old config's `theme("colors.ink.950")`-style tokens; the new palette is oklch
-custom properties. Class-by-class reconciliation is needed, and a wrong mapping
-degrades quietly rather than erroring.
+**~~Tailwind 3 → 4 in the animations.~~** *Retired — measured, not real.* The 7
+components turned out to be inline-styled (26–41 `style={{}}` blocks each) with
+their class names defined in self-contained `<style>` blocks inside each
+component. They carry no Tailwind classes and no external CSS dependency, so the
+port needed only `"use client"`. No reconciliation was required.
 
 **Two containers during the transition.** `lycee-web` and `lycee-web-next` both
 run until D. This is the accepted cost of keeping the live site untouched, and it

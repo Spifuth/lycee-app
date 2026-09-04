@@ -1,0 +1,12 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/accueil/page": "/accueil",
+  "/comment-ca-marche/[slug]/page": "/comment-ca-marche/[slug]",
+  "/comment-ca-marche/page": "/comment-ca-marche",
+  "/cyber/page": "/cyber",
+  "/metiers/page": "/metiers",
+  "/page": "/",
+  "/parcours/page": "/parcours",
+  "/pour-aller-plus-loin/page": "/pour-aller-plus-loin"
+}

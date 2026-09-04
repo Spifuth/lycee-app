@@ -1,0 +1,12 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/accueil/page": "app/accueil/page.js",
+  "/comment-ca-marche/[slug]/page": "app/comment-ca-marche/[slug]/page.js",
+  "/comment-ca-marche/page": "app/comment-ca-marche/page.js",
+  "/cyber/page": "app/cyber/page.js",
+  "/metiers/page": "app/metiers/page.js",
+  "/page": "app/page.js",
+  "/parcours/page": "app/parcours/page.js",
+  "/pour-aller-plus-loin/page": "app/pour-aller-plus-loin/page.js"
+}

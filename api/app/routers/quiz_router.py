@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import auth, badges, quiz
+from ..config import settings
 from ..db import get_db
 from ..limiter import limiter
 from ..models import Event, User
@@ -120,7 +121,7 @@ def get_theme(theme_id: str):
 
 
 @router.post("/{theme_id}/submit", response_model=SubmitOut)
-@limiter.limit("10/minute")
+@limiter.limit(f"{settings.rate_limit_quiz_submit_per_min}/minute")
 def submit_quiz(
     request: Request,
     theme_id: str,

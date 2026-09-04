@@ -98,7 +98,7 @@ def signup(request: Request, payload: SignupIn, response: Response, db: Session 
 
 
 @router.post("/login", response_model=TokenOut)
-@limiter.limit("10/minute")
+@limiter.limit(f"{settings.rate_limit_login_per_min}/minute")
 def login(request: Request, payload: LoginIn, response: Response, db: Session = Depends(get_db)):
     pseudo = payload.pseudo.strip()
     user = db.get(User, pseudo)
@@ -115,7 +115,7 @@ def login(request: Request, payload: LoginIn, response: Response, db: Session = 
 
 
 @router.post("/login-qr", response_model=TokenOut)
-@limiter.limit("20/minute")
+@limiter.limit(f"{settings.rate_limit_login_qr_per_min}/minute")
 def login_qr(request: Request, payload: LoginQRIn, response: Response, db: Session = Depends(get_db)):
     data = auth.decode_jwt(payload.qr_token)
     if data.get("kind") != "qr":

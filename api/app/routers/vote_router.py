@@ -6,6 +6,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from .. import auth, badges, state, topics
+from ..config import settings
 from ..db import get_db
 from ..limiter import limiter
 from ..models import Event, User, Vote
@@ -72,7 +73,7 @@ def get_state(request: Request, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=StateOut)
-@limiter.limit("10/minute")
+@limiter.limit(f"{settings.rate_limit_vote_per_min}/minute")
 def post_vote(
     request: Request,
     payload: VoteIn,

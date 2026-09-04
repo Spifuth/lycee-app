@@ -66,12 +66,26 @@ class ProfilePatch(BaseModel):
     avatar_seed: str | None = Field(default=None, min_length=1, max_length=32)
 
 
+def _dicebear_avatar_url(user: User) -> str | None:
+    """URL DiceBear pour cet utilisateur, ou None si un avatar custom approuvé prime.
+
+    La version d'API (`settings.dicebear_api_version`) est un contrat avec l'image
+    dicebear/api déployée — v2 sert /9.x/, v4 sert /10.x/ et renvoie 404 sur /9.x/.
+    Elle ne doit jamais être réécrite en dur ici.
+    """
+    if user.custom_avatar_status == "approved" and user.custom_avatar_filename:
+        return None
+    return (
+        f"{settings.dicebear_url}/{settings.dicebear_api_version}"
+        f"/{settings.dicebear_style}/svg?seed={user.avatar_seed}"
+    )
+
+
 def _to_out(db: Session, user: User) -> ProfileOut:
     # Avatar custom approuvé → on l'utilise. Sinon (pas d'upload ou pending) → DiceBear.
-    if user.custom_avatar_status == "approved" and user.custom_avatar_filename:
+    avatar_url = _dicebear_avatar_url(user)
+    if avatar_url is None:
         avatar_url = f"{settings.public_base_url}/api/profile/avatar/{user.custom_avatar_filename}"
-    else:
-        avatar_url = f"{settings.dicebear_url}/9.x/{settings.dicebear_style}/svg?seed={user.avatar_seed}"
     unlocked = {b["id"]: b for b in badges.list_unlocked(db, user.pseudo)}
     catalog = badges.catalog_for(db, user.pseudo)
     enriched = [

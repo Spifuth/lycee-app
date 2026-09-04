@@ -1,36 +1,18 @@
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from fastapi.responses import FileResponse, HTMLResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..auth import verify_password
+from ..auth import require_admin
 from .. import avatars as avatars_mod, discord, quiz, state, topics
 from ..config import settings
 from ..db import get_db
-from ..models import LiveAnswer, LiveParticipant, LiveSession, Question, User, Vote
+from ..models import Question, User, Vote
 
 from fastapi import Form
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-basic = HTTPBasic(realm="lycee-admin")
-
-ADMIN_USER = "admin"
-
-
-def require_admin(creds: HTTPBasicCredentials = Depends(basic)) -> str:
-    if not settings.admin_password_hash:
-        raise HTTPException(503, "Admin non configuré (LYCEE_ADMIN_PASSWORD_HASH manquant).")
-    if creds.username != ADMIN_USER or not verify_password(creds.password, settings.admin_password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Identifiants admin invalides.",
-            headers={"WWW-Authenticate": "Basic realm=lycee-admin"},
-        )
-    return creds.username
 
 
 def _page(body: str, active: str = "home") -> str:
@@ -1101,101 +1083,55 @@ def admin_live_create(
     _: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    if theme_id not in quiz.BY_ID:
-        raise HTTPException(400, f"Thème inconnu : {theme_id}")
-    duration_s = max(5, min(120, duration_s))
-    # Abort active if needed
-    active = db.execute(
-        select(LiveSession).where(LiveSession.state.in_(("lobby", "question", "between", "finished")))
-        .order_by(LiveSession.id.desc()).limit(1)
-    ).scalar_one_or_none()
-    if active and active.state != "finished":
-        active.state = "aborted"
     from . import live_router as lr
-    s = LiveSession(
-        theme_id=theme_id, state="lobby", current_q_idx=-1,
-        question_duration_s=duration_s,
-        question_order=lr._build_shuffled_order(theme_id),
-    )
-    db.add(s)
-    db.commit()
+    lr.op_create(db, theme_id, duration_s)
     response.headers["Location"] = "/admin/live"
     response.status_code = 303
     return None
 
 
-def _proxy_action(action: str, db: Session) -> None:
-    """Helper qui appelle l'endpoint /api/live/admin/<action> via la même DB session."""
-    from . import live_router as lr
-    active = db.execute(
-        select(LiveSession).where(LiveSession.state.in_(("lobby", "question", "between", "finished")))
-        .order_by(LiveSession.id.desc()).limit(1)
-    ).scalar_one_or_none()
-    if active is None:
-        raise HTTPException(404, "Aucune session active.")
-    # Reuse the same logic by calling the underlying functions
-    if action == "start":
-        if active.state != "lobby":
-            raise HTTPException(409, f"État: {active.state}")
-        active.state = "question"
-        active.current_q_idx = 0
-        active.question_started_at = datetime.now(timezone.utc)
-    elif action == "reveal":
-        if active.state == "between":
-            return  # idempotent : already revealed (auto-reveal a déjà tourné)
-        if active.state != "question":
-            raise HTTPException(409, f"État: {active.state}")
-        active.state = "between"
-    elif action == "next":
-        from . import live_router as lr
-        total = lr._total_questions(active)
-        if total == 0:
-            raise HTTPException(500, "Thème introuvable ou vide.")
-        nxt = active.current_q_idx + 1
-        if nxt >= total:
-            active.state = "finished"
-            lr._award_podium_badges(db, active)
-        else:
-            active.current_q_idx = nxt
-            active.state = "question"
-            active.question_started_at = datetime.now(timezone.utc)
-    elif action == "finish":
-        active.state = "finished"
-    elif action == "abort":
-        active.state = "aborted"
-    active.updated_at = datetime.now(timezone.utc)
-    db.commit()
+def _live_form(op, db: Session, response: Response) -> None:
+    """Run a shared live-quiz transition op and ALWAYS 303 → /admin/live.
+
+    The admin forms keep a forgiving UX: a 404 (no active session) or 409
+    (incompatible state, e.g. reveal-while-`between`) raised by the canonical
+    op is swallowed so the admin page just refreshes instead of surfacing an
+    error. The op itself is the SAME implementation backing the JSON API, so
+    the two surfaces can no longer drift.
+    """
+    try:
+        op(db)
+    except HTTPException:
+        db.rollback()
+    response.headers["Location"] = "/admin/live"
+    response.status_code = 303
 
 
 @router.post("/live/start")
 def admin_live_start(response: Response, _: str = Depends(require_admin), db: Session = Depends(get_db)):
-    _proxy_action("start", db)
-    response.headers["Location"] = "/admin/live"
-    response.status_code = 303
+    from . import live_router as lr
+    _live_form(lr.op_start, db, response)
     return None
 
 
 @router.post("/live/reveal")
 def admin_live_reveal(response: Response, _: str = Depends(require_admin), db: Session = Depends(get_db)):
-    _proxy_action("reveal", db)
-    response.headers["Location"] = "/admin/live"
-    response.status_code = 303
+    from . import live_router as lr
+    _live_form(lr.op_reveal, db, response)
     return None
 
 
 @router.post("/live/next")
 def admin_live_next(response: Response, _: str = Depends(require_admin), db: Session = Depends(get_db)):
-    _proxy_action("next", db)
-    response.headers["Location"] = "/admin/live"
-    response.status_code = 303
+    from . import live_router as lr
+    _live_form(lr.op_next, db, response)
     return None
 
 
 @router.post("/live/abort")
 def admin_live_abort(response: Response, _: str = Depends(require_admin), db: Session = Depends(get_db)):
-    _proxy_action("abort", db)
-    response.headers["Location"] = "/admin/live"
-    response.status_code = 303
+    from . import live_router as lr
+    _live_form(lr.op_abort, db, response)
     return None
 
 

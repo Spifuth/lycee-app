@@ -35,7 +35,7 @@ class EventOut(BaseModel):
 
 
 @router.post("/discord-click", response_model=dict)
-@limiter.limit("5/minute")
+@limiter.limit(f"{settings.rate_limit_discord_click_per_min}/minute")
 def post_discord_click(
     request: Request,
     user: User = Depends(auth.get_current_user),
@@ -48,7 +48,7 @@ def post_discord_click(
 
 
 @router.post("/easter-egg/{kind}", response_model=dict)
-@limiter.limit("3/minute")
+@limiter.limit(f"{settings.rate_limit_easter_egg_per_min}/minute")
 def post_easter_egg(
     request: Request,
     kind: str,

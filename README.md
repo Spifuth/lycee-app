@@ -81,6 +81,16 @@ lycee-app/
 └── build.sh              # construit les images Docker
 ```
 
+## Et la migration Next.js ?
+
+Une migration du frontend vers **Next.js** a été construite puis **mise en pause**
+le 2026-09-04 : la maquette de départ s'est révélée trop proche du design
+existant, et une seconde maquette brutaliste est prévue à la place, sans échéance.
+
+Le code et les specs vivent sur la branche [`parked/nextjs-migration`](../../tree/parked/nextjs-migration),
+qui contient un `PARKED.md` expliquant l'état exact et ce qui reste valable.
+**Ce n'est pas du travail en cours** — le site live tourne sur Astro (`web/`).
+
 ## Envie d'aider ?
 
 C'est exactement le but de ce dépôt ouvert. Lis [CONTRIBUTING.md](CONTRIBUTING.md) :

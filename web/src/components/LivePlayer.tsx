@@ -128,6 +128,7 @@ export default function LivePlayer() {
         throw new Error(body.detail || `HTTP ${r.status}`);
       }
       const data = await r.json();
+      if (typeof umami !== "undefined") umami.track("answer_submitted");
       setSubmitFeedback({ score: data.score, is_correct: data.is_correct });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

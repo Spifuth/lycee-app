@@ -1,7 +1,7 @@
 # Sub-project A — Next.js shell, static pages, container
 
 **Date:** 2026-09-04
-**Status:** in progress — pages done, container/CI outstanding
+**Status:** complete — pages, container and CI all landed; staging serving
 **Branch:** `feat/nextjs-shell` → PR into `dev`
 **Parent effort:** Astro → Next.js frontend migration (sub-projects A–G)
 
@@ -189,6 +189,15 @@ change, not a stylistic preference.
   silently reworded, and no accent is dropped.
 - The staging hostname serves HTTP 200 through Traefik.
 - `lycee.nebulahost.tech` still serves the Astro site, unchanged, at every point.
+
+**Outcome (2026-09-04).** All 14 routes return 200 over HTTPS on the staging
+hostname, `/rien-du-tout` returns a real 404 (not the home page with a 200),
+`/cyber` redirects to `/cyber/` *relatively* — proving `absolute_redirect off`
+works and no internal `:8080` leaks — and `/api/stats` proxies through to the
+live `lycee-api`, so `LiveStats` renders real data on staging. The privacy check
+is green. The live Astro site was verified serving unchanged before and after.
+The one item still owed is the `prefers-reduced-motion` pass over the five
+animation pages, which needs a real browser.
 
 ## Testing
 

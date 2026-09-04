@@ -1,0 +1,11 @@
+# Ce conteneur sert la refonte Next.js en préproduction, sur un hostname
+# distinct du site live. Elle est publiquement joignable — donc crawlable —
+# alors qu'elle est incomplète par construction : les pages d'auth, de quiz et
+# de vote n'existent pas encore (sous-projets B et C).
+#
+# Le site de production sert le même `Disallow: /` : le projet n'a jamais
+# souhaité être indexé. `X-Robots-Tag: noindex` est posé par l'infra, mais c'est
+# un en-tête de RÉPONSE — un crawler doit récupérer l'URL pour le découvrir.
+# Ce fichier est la moitié « requête » de cette intention.
+User-agent: *
+Disallow: /

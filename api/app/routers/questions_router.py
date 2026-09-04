@@ -54,7 +54,7 @@ class ReactionOut(BaseModel):
 
 
 @router.post("", response_model=QuestionOut)
-@limiter.limit("5/minute")
+@limiter.limit(f"{settings.rate_limit_question_per_min}/minute")
 def post_question(
     request: Request,
     payload: QuestionIn,
@@ -178,7 +178,7 @@ def list_allowed_emojis():
 
 
 @router.post("/{question_id}/react", response_model=ReactionOut)
-@limiter.limit("30/minute")
+@limiter.limit(f"{settings.rate_limit_reaction_per_min}/minute")
 def react(
     request: Request,
     question_id: int,

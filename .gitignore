@@ -21,6 +21,15 @@ dist/
 .astro/
 .cache/
 
+# --- Sorties de build Next.js ---
+# Elles n'étaient ignorées que par web-next/.gitignore. En supprimant ce
+# répertoire, ce garde-fou a disparu avec lui, et un `git add -A` a versionné
+# 482 fichiers de build (81 Mo) dans dev. Les règles vivent au niveau racine
+# pour qu'elles survivent à la suppression de n'importe quel sous-projet.
+.next/
+out/
+next-env.d.ts
+
 # --- Données / base ---
 data/*.db
 data/*.sqlite
